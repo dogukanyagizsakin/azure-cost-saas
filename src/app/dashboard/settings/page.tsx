@@ -1,12 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'azure' | 'notifications' | 'account'>('azure')
   const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'success' | 'error' | 'testing'>('unknown')
+  const [connectionMessage, setConnectionMessage] = useState('')
+  const [subscriptionName, setSubscriptionName] = useState('')
 
   const [azureForm, setAzureForm] = useState({
     subscriptionId: '',
@@ -23,18 +27,92 @@ export default function SettingsPage() {
     weeklyReport: true,
   })
 
+  useEffect(() => {
+    // Mevcut Azure bilgilerini yükle
+    async function loadSettings() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('tenant_id')
+        .eq('id', session.user.id)
+        .single()
+
+      if (!userData) return
+
+      const { data: tenant } = await supabase
+        .from('tenants')
+        .select('*')
+        .eq('id', userData.tenant_id)
+        .single()
+
+      if (tenant) {
+        setAzureForm({
+          subscriptionId: tenant.azure_subscription_id || '',
+          tenantId: tenant.azure_tenant_id || '',
+          clientId: tenant.azure_client_id || '',
+          clientSecret: tenant.azure_client_secret ? '••••••••••••••••' : '',
+        })
+        if (tenant.azure_subscription_id) {
+          setConnectionStatus('success')
+          setConnectionMessage('Azure bağlantısı mevcut')
+        }
+      }
+    }
+    loadSettings()
+  }, [])
+
   async function handleAzureSave() {
     setSaving(true)
-    // Gerçek kaydetme işlemi ilerleyen adımlarda eklenecek
-    await new Promise(r => setTimeout(r, 1000))
+    try {
+      const response = await fetch('/api/azure/save-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(azureForm),
+      })
+      const data = await response.json()
+      if (data.success) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      } else {
+        alert('Hata: ' + data.error)
+      }
+    } catch {
+      alert('Kaydetme hatası')
+    }
     setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+  }
+
+  async function handleTestConnection() {
+    setTesting(true)
+    setConnectionStatus('testing')
+    setConnectionMessage('Test ediliyor...')
+    try {
+      const response = await fetch('/api/azure/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(azureForm),
+      })
+      const data = await response.json()
+      if (data.success) {
+        setConnectionStatus('success')
+        setSubscriptionName(data.subscriptionName)
+        setConnectionMessage(`Bağlantı başarılı! Subscription: ${data.subscriptionName}`)
+      } else {
+        setConnectionStatus('error')
+        setConnectionMessage(data.error || 'Bağlantı başarısız')
+      }
+    } catch {
+      setConnectionStatus('error')
+      setConnectionMessage('Bağlantı testi başarısız')
+    }
+    setTesting(false)
   }
 
   async function handleNotifSave() {
     setSaving(true)
-    await new Promise(r => setTimeout(r, 1000))
+    await new Promise(r => setTimeout(r, 800))
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
@@ -58,9 +136,7 @@ export default function SettingsPage() {
             key={tab.key}
             onClick={() => setActiveTab(tab.key as any)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === tab.key
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-400 hover:text-white'
+              activeTab === tab.key ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             {tab.label}
@@ -86,50 +162,31 @@ export default function SettingsPage() {
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h3 className="text-sm font-semibold text-white mb-4">Azure Service Principal Bilgileri</h3>
 
-            <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Subscription ID</label>
-              <input
-                type="text"
-                value={azureForm.subscriptionId}
-                onChange={e => setAzureForm({...azureForm, subscriptionId: e.target.value})}
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Tenant ID (Directory ID)</label>
-              <input
-                type="text"
-                value={azureForm.tenantId}
-                onChange={e => setAzureForm({...azureForm, tenantId: e.target.value})}
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Client ID (Application ID)</label>
-              <input
-                type="text"
-                value={azureForm.clientId}
-                onChange={e => setAzureForm({...azureForm, clientId: e.target.value})}
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Client Secret</label>
-              <input
-                type="password"
-                value={azureForm.clientSecret}
-                onChange={e => setAzureForm({...azureForm, clientSecret: e.target.value})}
-                placeholder="••••••••••••••••••••••••••••••••"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
-              />
-              <p className="text-xs text-gray-600 mt-1">Değer şifrelenmiş olarak saklanır</p>
-            </div>
+            {[
+              { label: 'Subscription ID', key: 'subscriptionId', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', type: 'text' },
+              { label: 'Tenant ID (Directory ID)', key: 'tenantId', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', type: 'text' },
+              { label: 'Client ID (Application ID)', key: 'clientId', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', type: 'text' },
+              { label: 'Client Secret', key: 'clientSecret', placeholder: '••••••••••••••••••••••••••••••••', type: 'password' },
+            ].map(field => (
+              <div key={field.key}>
+                <label className="block text-xs text-gray-400 mb-1.5">{field.label}</label>
+                <input
+                  type={field.type}
+                  value={azureForm[field.key as keyof typeof azureForm]}
+                  onChange={e => setAzureForm({...azureForm, [field.key]: e.target.value})}
+                  onFocus={() => {
+                    if (field.key === 'clientSecret' && azureForm.clientSecret === '••••••••••••••••') {
+                      setAzureForm({...azureForm, clientSecret: ''})
+                    }
+                  }}
+                  placeholder={field.placeholder}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
+                />
+              </div>
+            ))}
+            {azureForm.clientSecret && azureForm.clientSecret !== '••••••••••••••••' && (
+              <p className="text-xs text-gray-600">Değer şifrelenmiş olarak saklanır</p>
+            )}
 
             <div className="flex items-center gap-3 pt-2">
               <button
@@ -143,7 +200,12 @@ export default function SettingsPage() {
                   <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Kaydedildi!</>
                 ) : 'Kaydet'}
               </button>
-              <button className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-colors">
+              <button
+                onClick={handleTestConnection}
+                disabled={testing || !azureForm.subscriptionId}
+                className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 disabled:opacity-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+              >
+                {testing && <div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />}
                 Bağlantıyı Test Et
               </button>
             </div>
@@ -153,10 +215,24 @@ export default function SettingsPage() {
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <h3 className="text-sm font-semibold text-white mb-4">Bağlantı Durumu</h3>
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              <span className="text-sm text-yellow-400">Henüz bağlanmadı</span>
+              <div className={`w-3 h-3 rounded-full ${
+                connectionStatus === 'success' ? 'bg-green-500' :
+                connectionStatus === 'error' ? 'bg-red-500' :
+                connectionStatus === 'testing' ? 'bg-blue-500 animate-pulse' :
+                'bg-yellow-500'
+              }`} />
+              <span className={`text-sm ${
+                connectionStatus === 'success' ? 'text-green-400' :
+                connectionStatus === 'error' ? 'text-red-400' :
+                connectionStatus === 'testing' ? 'text-blue-400' :
+                'text-yellow-400'
+              }`}>
+                {connectionStatus === 'unknown' ? 'Henüz test edilmedi' : connectionMessage}
+              </span>
             </div>
-            <p className="text-xs text-gray-500 mt-2">Azure bilgilerini girerek kaydedin, ardından bağlantıyı test edin.</p>
+            {subscriptionName && connectionStatus === 'success' && (
+              <p className="text-xs text-gray-500 mt-2">Subscription: <span className="text-gray-300">{subscriptionName}</span></p>
+            )}
           </div>
         </div>
       )}
@@ -179,7 +255,6 @@ export default function SettingsPage() {
 
           <div className="space-y-4">
             <p className="text-xs text-gray-500 uppercase tracking-wider">Bildirim Tercihleri</p>
-
             {[
               { key: 'scanReport', label: 'Tarama Raporu', desc: 'Her tarama sonrası özet e-posta gönder' },
               { key: 'costAlert', label: 'Maliyet Alarmı', desc: 'Maliyet eşiği aşıldığında uyar' },
