@@ -57,25 +57,72 @@ const scanLogs = [
 ]
 
 export default function DashboardPage() {
+  const [scanning, setScanning] = useState(false)
+  const [scanResult, setScanResult] = useState<{ success: boolean; message: string } | null>(null)
+
   const totalMaliyet = 9600
   const tasarrufFirsati = 1970
   const aktifKaynak = 47
   const tahmin = 11200
 
+  async function handleScan() {
+    setScanning(true)
+    setScanResult(null)
+    try {
+      const response = await fetch('/api/scan', { method: 'POST' })
+      const data = await response.json()
+      if (data.success) {
+        setScanResult({
+          success: true,
+          message: `Tarama tamamlandı! ${data.resourcesScanned} kaynak tarandı, ${data.recommendationsFound} öneri bulundu.`
+        })
+      } else {
+        setScanResult({ success: false, message: data.error })
+      }
+    } catch {
+      setScanResult({ success: false, message: 'Tarama başarısız' })
+    }
+    setScanning(false)
+  }
+
   return (
     <div className="p-6">
+
+      {/* Üst bar */}
       <div className="flex items-center justify-between mb-6">
-        <p className="text-xs text-gray-500">Son tarama: <span className="text-gray-400">2 saat önce</span> · Sonraki tarama: <span className="text-gray-400">6 saat sonra</span></p>
+        <p className="text-xs text-gray-500">
+          Son tarama: <span className="text-gray-400">2 saat önce</span> · Sonraki tarama: <span className="text-gray-400">6 saat sonra</span>
+        </p>
         <div className="flex items-center gap-3">
           <p className="text-xs text-gray-500">Subscription: <span className="text-blue-400">UnifyTech Production</span></p>
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Şimdi Tara
+          <button
+            onClick={handleScan}
+            disabled={scanning}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+          >
+            {scanning ? (
+              <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />Taranıyor...</>
+            ) : (
+              <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Şimdi Tara</>
+            )}
           </button>
         </div>
       </div>
+
+      {/* Tarama sonucu */}
+      {scanResult && (
+        <div className={`mb-6 px-4 py-3 rounded-xl text-sm flex items-center gap-2 ${
+          scanResult.success
+            ? 'bg-green-900/30 border border-green-800 text-green-400'
+            : 'bg-red-900/30 border border-red-800 text-red-400'
+        }`}>
+          {scanResult.success
+            ? <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            : <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          }
+          {scanResult.message}
+        </div>
+      )}
 
       {/* Kaynak Durum Bar */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6 flex items-center gap-6">
@@ -274,6 +321,7 @@ export default function DashboardPage() {
           </tbody>
         </table>
       </div>
+
     </div>
   )
 }
