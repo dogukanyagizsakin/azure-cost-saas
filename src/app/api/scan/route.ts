@@ -245,6 +245,33 @@ export async function POST(request: Request) {
         })
         .eq('id', scanLog?.id)
 
+// Bildirim e-postası gönder
+try {
+  const { data: notifSettings } = await supabase
+    .from('users')
+    .select('email')
+    .eq('id', user.id)
+    .single()
+
+  if (notifSettings?.email) {
+    await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: notifSettings.email,
+        companyName: tenant.name,
+        resourcesScanned: resources.length,
+        recommendationsFound,
+        totalCost,
+        estimatedSaving: recommendationsFound * 300,
+        recommendations: [],
+      }),
+    })
+  }
+} catch (emailErr) {
+  console.log('E-posta gönderilemedi:', emailErr)
+}
+
       return NextResponse.json({
         success: true,
         resourcesScanned: resources.length,

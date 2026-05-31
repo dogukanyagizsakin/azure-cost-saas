@@ -8,6 +8,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [sendingTest, setSendingTest] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'success' | 'error' | 'testing'>('unknown')
   const [connectionMessage, setConnectionMessage] = useState('')
   const [subscriptionName, setSubscriptionName] = useState('')
@@ -28,10 +29,11 @@ export default function SettingsPage() {
   })
 
   useEffect(() => {
-    // Mevcut Azure bilgilerini yükle
     async function loadSettings() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
+
+      setNotifForm(prev => ({ ...prev, email: session.user.email || '' }))
 
       const { data: userData } = await supabase
         .from('users')
@@ -118,6 +120,38 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 3000)
   }
 
+  async function handleTestEmail() {
+    if (!notifForm.email) {
+      alert('Önce e-posta adresinizi girin')
+      return
+    }
+    setSendingTest(true)
+    try {
+      const res = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: notifForm.email,
+          companyName: 'UnifyTech',
+          resourcesScanned: 47,
+          recommendationsFound: 5,
+          totalCost: 9600,
+          estimatedSaving: 1970,
+          recommendations: [
+            { kaynak: 'prod-vm-01', tip: 'Boşta VM', tasarruf: 820, oncelik: 'yüksek' },
+            { kaynak: 'dev-vm-02', tip: 'Boşta VM', tasarruf: 340, oncelik: 'yüksek' },
+            { kaynak: 'storage-backup', tip: 'Orphan Kaynak', tasarruf: 410, oncelik: 'orta' },
+          ],
+        }),
+      })
+      const data = await res.json()
+      alert(data.success ? '✅ Test e-postası gönderildi! Gelen kutunuzu kontrol edin.' : '❌ Hata: ' + data.error)
+    } catch {
+      alert('❌ E-posta gönderilemedi')
+    }
+    setSendingTest(false)
+  }
+
   return (
     <div className="p-6 max-w-4xl">
       <div className="mb-6">
@@ -184,9 +218,7 @@ export default function SettingsPage() {
                 />
               </div>
             ))}
-            {azureForm.clientSecret && azureForm.clientSecret !== '••••••••••••••••' && (
-              <p className="text-xs text-gray-600">Değer şifrelenmiş olarak saklanır</p>
-            )}
+            <p className="text-xs text-gray-600">Client Secret şifrelenmiş olarak saklanır</p>
 
             <div className="flex items-center gap-3 pt-2">
               <button
@@ -286,17 +318,36 @@ export default function SettingsPage() {
             <p className="text-xs text-gray-600 mt-1">Günlük maliyet bu değeri aşarsa alarm gönderilir</p>
           </div>
 
-          <button
-            onClick={handleNotifSave}
-            disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-          >
-            {saving ? (
-              <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />Kaydediliyor...</>
-            ) : saved ? (
-              <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Kaydedildi!</>
-            ) : 'Kaydet'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleNotifSave}
+              disabled={saving}
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            >
+              {saving ? (
+                <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />Kaydediliyor...</>
+              ) : saved ? (
+                <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Kaydedildi!</>
+              ) : 'Kaydet'}
+            </button>
+
+            <button
+              onClick={handleTestEmail}
+              disabled={sendingTest || !notifForm.email}
+              className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 disabled:opacity-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            >
+              {sendingTest ? (
+                <><div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />Gönderiliyor...</>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Test E-postası Gönder
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
 
