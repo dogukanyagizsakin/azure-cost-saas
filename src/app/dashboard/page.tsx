@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { toast } from 'sonner'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
@@ -9,7 +9,6 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts'
-import { useRef } from 'react'
 
 const costTrend = [
   { gun: 'Pzt', maliyet: 1240 },
@@ -101,26 +100,25 @@ export default function DashboardPage() {
   const [realData, setRealData] = useState<any>(null)
   const [subscriptionName, setSubscriptionName] = useState('')
 
-  useEffect(() => {
-    const loadRealData = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
+  async function loadRealData() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
 
-      const res = await fetch('/api/dashboard-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: session.access_token }),
-      })
+    const res = await fetch('/api/dashboard-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: session.access_token }),
+    })
 
-      if (res.ok) {
-        const data = await res.json()
-        setRealData(data)
-        setSubscriptionName(data.subscriptionName || '')
-      }
+    if (res.ok) {
+      const data = await res.json()
+      setRealData(data)
+      setSubscriptionName(data.subscriptionName || '')
     }
+  }
 
+  useEffect(() => {
     loadRealData()
-
     fetch('/api/budget')
       .then(r => r.json())
       .then(d => {
@@ -132,7 +130,8 @@ export default function DashboardPage() {
   const totalMaliyet = realData?.totalCost || 0
   const tasarrufFirsati = realData?.totalSaving || 0
   const aktifKaynak = realData?.resourceCount || 0
-  const tahmin = Math.round((realData?.totalCost || 0) * 1.15)
+  const tahmin = Math.round(totalMaliyet * 1.15)
+  const costSupported = realData ? (realData.costSupported ?? true) : true
 
   const displayTopResources = realData?.topResources?.map((r: any) => ({
     name: r.name,
@@ -166,18 +165,7 @@ export default function DashboardPage() {
       const data = await response.json()
       if (data.success) {
         toast.success(`Tarama tamamlandı! ${data.resourcesScanned} kaynak, ${data.recommendationsFound} öneri bulundu.`, { id: toastId })
-        // Gerçek verileri yenile
-        const { data: { session: s } } = await supabase.auth.getSession()
-        const res = await fetch('/api/dashboard-data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken: s?.access_token }),
-        })
-        if (res.ok) {
-          const d = await res.json()
-          setRealData(d)
-          setSubscriptionName(d.subscriptionName || '')
-        }
+        await loadRealData()
       } else {
         toast.error(data.error || 'Tarama başarısız', { id: toastId })
       }
@@ -226,8 +214,25 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
+      {/* Cost Management Uyarısı */}
+      {realData && !costSupported && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-yellow-900/20 border border-yellow-800/50 rounded-xl p-4 mb-6 flex items-center gap-3"
+        >
+          <svg className="w-5 h-5 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p className="text-sm text-yellow-300 font-medium">Maliyet verisi bu subscription türünde desteklenmiyor</p>
+            <p className="text-xs text-yellow-400/70 mt-0.5">Pay-As-You-Go subscription ile gerçek maliyet verileri görüntülenebilir. Kaynak listesi ve öneriler çalışmaya devam ediyor.</p>
+          </div>
+        </motion.div>
+      )}
+
       {/* Bütçe Widget */}
-      {budget && (
+      {budget && totalMaliyet > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -289,15 +294,15 @@ export default function DashboardPage() {
         <div className="flex items-center gap-4 flex-shrink-0">
           <div className="flex items-center gap-1.5">
             <motion.div className="w-2 h-2 rounded-full bg-green-500" animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, delay: 0 }} />
-            <span className="text-xs text-gray-400">{realData ? Math.round(aktifKaynak * 0.6) : 28} Aktif</span>
+            <span className="text-xs text-gray-400">{aktifKaynak > 0 ? Math.round(aktifKaynak * 0.6) : 0} Aktif</span>
           </div>
           <div className="flex items-center gap-1.5">
             <motion.div className="w-2 h-2 rounded-full bg-yellow-500" animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, delay: 0.3 }} />
-            <span className="text-xs text-gray-400">{realData ? Math.round(aktifKaynak * 0.25) : 12} Boşta</span>
+            <span className="text-xs text-gray-400">{aktifKaynak > 0 ? Math.round(aktifKaynak * 0.25) : 0} Boşta</span>
           </div>
           <div className="flex items-center gap-1.5">
             <motion.div className="w-2 h-2 rounded-full bg-red-500" animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, delay: 0.6 }} />
-            <span className="text-xs text-gray-400">{realData ? Math.round(aktifKaynak * 0.15) : 7} Orphan</span>
+            <span className="text-xs text-gray-400">{aktifKaynak > 0 ? Math.round(aktifKaynak * 0.15) : 0} Orphan</span>
           </div>
         </div>
       </motion.div>
@@ -306,30 +311,45 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           {
-            label: 'Aylık Maliyet', value: totalMaliyet, prefix: '$',
-            sub: totalMaliyet > 0 ? '↑ %12 geçen ay' : 'Tarama yapılmamış',
-            subColor: totalMaliyet > 0 ? 'text-red-400' : 'text-gray-500',
+            label: 'Aylık Maliyet',
+            value: totalMaliyet,
+            prefix: '$',
+            sub: !costSupported && realData
+              ? '⚠ Bu subscription türünde desteklenmiyor'
+              : totalMaliyet > 0 ? '↑ %12 geçen ay' : 'Tarama yapılmamış',
+            subColor: !costSupported && realData ? 'text-yellow-500' :
+              totalMaliyet > 0 ? 'text-red-400' : 'text-gray-500',
             icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
             iconBg: 'bg-blue-600/20', iconColor: 'text-blue-400', valueColor: 'text-white',
           },
           {
-            label: 'Tasarruf Fırsatı', value: tasarrufFirsati, prefix: '$',
-            sub: tasarrufFirsati > 0 ? `%${Math.round(tasarrufFirsati / (totalMaliyet || 1) * 100)} tasarruf mümkün` : 'Öneri bulunamadı',
+            label: 'Tasarruf Fırsatı',
+            value: tasarrufFirsati,
+            prefix: '$',
+            sub: tasarrufFirsati > 0
+              ? `%${Math.round(tasarrufFirsati / (totalMaliyet || 1) * 100)} tasarruf mümkün`
+              : realData ? 'Öneri bulunamadı' : 'Tarama yapılmamış',
             subColor: 'text-green-600',
             icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
             iconBg: 'bg-green-600/20', iconColor: 'text-green-400', valueColor: 'text-green-400',
           },
           {
-            label: 'Aktif Kaynak', value: aktifKaynak, prefix: '',
-            sub: realData?.recommendationCount > 0 ? `${realData.recommendationCount} öneri var` : 'Öneri yok',
+            label: 'Toplam Kaynak',
+            value: aktifKaynak,
+            prefix: '',
+            sub: realData?.recommendationCount > 0
+              ? `${realData.recommendationCount} öneri var`
+              : realData ? 'Öneri yok' : 'Tarama yapılmamış',
             subColor: 'text-yellow-500',
             icon: 'M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01',
             iconBg: 'bg-purple-600/20', iconColor: 'text-purple-400', valueColor: 'text-white',
           },
           {
-            label: 'Ay Sonu Tahmini', value: tahmin, prefix: '$',
-            sub: 'Mevcut trendde',
-            subColor: 'text-gray-500',
+            label: 'Ay Sonu Tahmini',
+            value: tahmin,
+            prefix: '$',
+            sub: !costSupported && realData ? '⚠ Maliyet verisi yok' : 'Mevcut trendde',
+            subColor: !costSupported && realData ? 'text-yellow-500' : 'text-gray-500',
             icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
             iconBg: 'bg-orange-600/20', iconColor: 'text-orange-400', valueColor: 'text-orange-400',
           },
@@ -495,7 +515,11 @@ export default function DashboardPage() {
                 <td className="py-3 text-white">{log.kaynak}</td>
                 <td className="py-3 text-white">{log.öneri}</td>
                 <td className="py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${log.durum === 'success' ? 'bg-green-900/50 text-green-400' : log.durum === 'running' ? 'bg-blue-900/50 text-blue-400' : 'bg-red-900/50 text-red-400'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    log.durum === 'success' ? 'bg-green-900/50 text-green-400' :
+                    log.durum === 'running' ? 'bg-blue-900/50 text-blue-400' :
+                    'bg-red-900/50 text-red-400'
+                  }`}>
                     {log.durum === 'success' ? 'Başarılı' : log.durum === 'running' ? 'Çalışıyor' : 'Hata'}
                   </span>
                 </td>
@@ -504,7 +528,6 @@ export default function DashboardPage() {
           </tbody>
         </table>
       </motion.div>
-
     </motion.div>
   )
 }

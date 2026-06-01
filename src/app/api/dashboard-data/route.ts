@@ -28,13 +28,11 @@ export async function POST(request: Request) {
       .eq('id', userData.tenant_id)
       .single()
 
-    // Kaynaklar
     const { data: resources } = await adminSupabase
       .from('resources')
       .select('*, cost_snapshots(cost_usd)')
       .eq('tenant_id', userData.tenant_id)
 
-    // Öneriler
     const { data: recommendations } = await adminSupabase
       .from('recommendations')
       .select('*, resources(name, resource_type, resource_group)')
@@ -42,7 +40,6 @@ export async function POST(request: Request) {
       .eq('status', 'open')
       .order('estimated_monthly_saving', { ascending: false })
 
-    // Scan logları
     const { data: scanLogs } = await adminSupabase
       .from('scan_logs')
       .select('*')
@@ -50,34 +47,32 @@ export async function POST(request: Request) {
       .order('started_at', { ascending: false })
       .limit(5)
 
-    // Toplam maliyet
     const totalCost = resources?.reduce((sum, r) =>
       sum + (r.cost_snapshots?.reduce((s: number, c: any) => s + Number(c.cost_usd), 0) || 0), 0) || 0
 
-    // Tasarruf fırsatı
     const totalSaving = recommendations?.reduce((sum, r) => sum + r.estimated_monthly_saving, 0) || 0
 
-    // Kaynak durumu
-    const activeCount = resources?.filter(r => r.is_active).length || 0
-    const resourceTypes: Record<string, number> = {}
-    resources?.forEach(r => {
-      const type = r.resource_type?.split('/').pop() || 'Other'
-      resourceTypes[type] = (resourceTypes[type] || 0) + 1
-    })
+    // Cost Management destekleniyor mu kontrol et
+    const hasCostData = resources?.some(r =>
+      r.cost_snapshots?.some((c: any) => Number(c.cost_usd) > 0)
+    ) ?? false
+    const costSupported = hasCostData || (resources?.length === 0)
 
-    // Son tarama zamanı
     const lastScan = scanLogs?.[0]
     const lastScanTime = lastScan
-      ? new Date(lastScan.started_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      ? new Date(lastScan.started_at).toLocaleDateString('tr-TR', {
+          day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+        })
       : null
 
     return NextResponse.json({
       totalCost: Math.round(totalCost),
       totalSaving: Math.round(totalSaving),
       resourceCount: resources?.length || 0,
-      activeCount,
+      activeCount: resources?.filter(r => r.is_active).length || 0,
       recommendationCount: recommendations?.length || 0,
       subscriptionName: tenant?.name || '',
+      costSupported,
       lastScanTime,
       scanLogs: scanLogs || [],
       topResources: resources
@@ -98,7 +93,8 @@ export async function POST(request: Request) {
         kaynak: r.resources?.name || 'Bilinmiyor',
         tip: r.title,
         tasarruf: Math.round(r.estimated_monthly_saving),
-        oncelik: r.estimated_monthly_saving >= 500 ? 'yüksek' : r.estimated_monthly_saving >= 200 ? 'orta' : 'düşük',
+        oncelik: r.estimated_monthly_saving >= 500 ? 'yüksek' :
+          r.estimated_monthly_saving >= 200 ? 'orta' : 'düşük',
       })),
     })
   } catch (err: any) {
