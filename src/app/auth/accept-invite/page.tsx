@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -39,7 +39,6 @@ export default function AcceptInvitePage() {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      // Giriş yapılmamışsa Microsoft ile giriş yaptır
       await supabase.auth.signInWithOAuth({
         provider: 'azure',
         options: {
@@ -49,7 +48,6 @@ export default function AcceptInvitePage() {
       return
     }
 
-    // Kullanıcıyı tenant'a ekle
     const { error: userError } = await supabase.from('users').upsert({
       id: user.id,
       tenant_id: invitation.tenant_id,
@@ -60,7 +58,6 @@ export default function AcceptInvitePage() {
 
     if (userError) { setStatus('invalid'); return }
 
-    // Daveti kabul edildi olarak işaretle
     await supabase
       .from('invitations')
       .update({ status: 'accepted' })
@@ -109,23 +106,4 @@ export default function AcceptInvitePage() {
           <span className="text-white font-medium">{invitation?.tenants?.name}</span> şirketinin
         </p>
         <p className="text-gray-400 text-sm mb-6">
-          Azure Cost platformuna <span className="text-blue-400 font-medium">{invitation?.role === 'viewer' ? 'Görüntüleyici' : 'Admin'}</span> olarak davet edildiniz.
-        </p>
-        <button
-          onClick={handleAccept}
-          disabled={status === 'accepting'}
-          className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-50 text-gray-900 font-medium rounded-xl py-3 transition-colors"
-        >
-          <svg width="18" height="18" viewBox="0 0 21 21" fill="none">
-            <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
-            <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
-            <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
-            <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
-          </svg>
-          {status === 'accepting' ? 'İşleniyor...' : 'Microsoft ile Kabul Et'}
-        </button>
-        <p className="text-xs text-gray-600 mt-4">Bu davet 7 gün geçerlidir</p>
-      </div>
-    </div>
-  )
-}
+          Azure Cost platformuna <span className="text-blue-400 font-medium">{i
