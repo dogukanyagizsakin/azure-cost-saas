@@ -1,10 +1,148 @@
 'use client'
-import { toast } from 'sonner'
+
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
+
+function TeamTab() {
+  const [email, setEmail] = useState('')
+  const [role, setRole] = useState('admin')
+  const [sending, setSending] = useState(false)
+  const [invitations, setInvitations] = useState<any[]>([])
+  const [members, setMembers] = useState<any[]>([])
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  async function loadData() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('tenant_id')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!userData) return
+
+    const { data: membersData } = await supabase
+      .from('users')
+      .select('*')
+      .eq('tenant_id', userData.tenant_id)
+
+    setMembers(membersData || [])
+
+    const invRes = await fetch('/api/invite')
+    const invData = await invRes.json()
+    setInvitations(invData.invitations || [])
+  }
+
+  async function handleInvite() {
+    if (!email) { toast.error('E-posta adresi girin'); return }
+    setSending(true)
+    const res = await fetch('/api/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, role }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      toast.success('Davet e-postası gönderildi!')
+      setEmail('')
+      loadData()
+    } else {
+      toast.error(data.error)
+    }
+    setSending(false)
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <h3 className="text-sm font-semibold text-white mb-4">Takım Üyeleri</h3>
+        <div className="space-y-2">
+          {members.map((m, i) => (
+            <div key={i} className="flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">{m.email?.[0]?.toUpperCase()}</span>
+                </div>
+                <div>
+                  <p className="text-sm text-white">{m.full_name || m.email}</p>
+                  <p className="text-xs text-gray-500">{m.email}</p>
+                </div>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                m.role === 'owner' ? 'bg-purple-900/50 text-purple-400' :
+                m.role === 'admin' ? 'bg-blue-900/50 text-blue-400' :
+                'bg-gray-800 text-gray-400'
+              }`}>
+                {m.role === 'owner' ? 'Sahip' : m.role === 'admin' ? 'Admin' : 'Görüntüleyici'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <h3 className="text-sm font-semibold text-white mb-4">Yeni Üye Davet Et</h3>
+        <div className="flex gap-3">
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="ornek@sirket.com"
+            className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+          />
+          <select
+            value={role}
+            onChange={e => setRole(e.target.value)}
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+          >
+            <option value="admin">Admin</option>
+            <option value="viewer">Görüntüleyici</option>
+          </select>
+          <button
+            onClick={handleInvite}
+            disabled={sending}
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+          >
+            {sending && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+            Davet Gönder
+          </button>
+        </div>
+      </div>
+
+      {invitations.length > 0 && (
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h3 className="text-sm font-semibold text-white mb-4">Bekleyen Davetler</h3>
+          <div className="space-y-2">
+            {invitations.map((inv, i) => (
+              <div key={i} className="flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0">
+                <div>
+                  <p className="text-sm text-white">{inv.email}</p>
+                  <p className="text-xs text-gray-500">{new Date(inv.created_at).toLocaleDateString('tr-TR')} tarihinde gönderildi</p>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  inv.status === 'pending' ? 'bg-yellow-900/50 text-yellow-400' :
+                  inv.status === 'accepted' ? 'bg-green-900/50 text-green-400' :
+                  'bg-gray-800 text-gray-400'
+                }`}>
+                  {inv.status === 'pending' ? 'Bekliyor' : inv.status === 'accepted' ? 'Kabul Edildi' : 'Süresi Doldu'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'azure' | 'notifications' | 'account'>('azure')
+  const [activeTab, setActiveTab] = useState<'azure' | 'notifications' | 'account' | 'team'>('azure')
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -65,25 +203,25 @@ export default function SettingsPage() {
     loadSettings()
   }, [])
 
-async function handleAzureSave() {
-  setSaving(true)
-  try {
-    const response = await fetch('/api/azure/save-credentials', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(azureForm),
-    })
-    const data = await response.json()
-    if (data.success) {
-      toast.success('Azure bilgileri kaydedildi!')
-    } else {
-      toast.error('Hata: ' + data.error)
+  async function handleAzureSave() {
+    setSaving(true)
+    try {
+      const response = await fetch('/api/azure/save-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(azureForm),
+      })
+      const data = await response.json()
+      if (data.success) {
+        toast.success('Azure bilgileri kaydedildi!')
+      } else {
+        toast.error('Hata: ' + data.error)
+      }
+    } catch {
+      toast.error('Kaydetme sırasında hata oluştu')
     }
-  } catch {
-    toast.error('Kaydetme sırasında hata oluştu')
+    setSaving(false)
   }
-  setSaving(false)
-}
 
   async function handleTestConnection() {
     setTesting(true)
@@ -100,59 +238,62 @@ async function handleAzureSave() {
         setConnectionStatus('success')
         setSubscriptionName(data.subscriptionName)
         setConnectionMessage(`Bağlantı başarılı! Subscription: ${data.subscriptionName}`)
+        toast.success(`Bağlantı başarılı! Subscription: ${data.subscriptionName}`)
       } else {
         setConnectionStatus('error')
         setConnectionMessage(data.error || 'Bağlantı başarısız')
+        toast.error(data.error || 'Bağlantı başarısız')
       }
     } catch {
       setConnectionStatus('error')
       setConnectionMessage('Bağlantı testi başarısız')
+      toast.error('Bağlantı testi başarısız')
     }
     setTesting(false)
   }
 
   async function handleNotifSave() {
-  setSaving(true)
-  await new Promise(r => setTimeout(r, 800))
-  setSaving(false)
-  toast.success('Bildirim ayarları kaydedildi!')
-}
+    setSaving(true)
+    await new Promise(r => setTimeout(r, 800))
+    setSaving(false)
+    toast.success('Bildirim ayarları kaydedildi!')
+  }
 
-async function handleTestEmail() {
-  if (!notifForm.email) {
-    toast.error('Önce e-posta adresinizi girin')
-    return
-  }
-  setSendingTest(true)
-  try {
-    const res = await fetch('/api/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: notifForm.email,
-        companyName: 'UnifyTech',
-        resourcesScanned: 47,
-        recommendationsFound: 5,
-        totalCost: 9600,
-        estimatedSaving: 1970,
-        recommendations: [
-          { kaynak: 'prod-vm-01', tip: 'Boşta VM', tasarruf: 820, oncelik: 'yüksek' },
-          { kaynak: 'dev-vm-02', tip: 'Boşta VM', tasarruf: 340, oncelik: 'yüksek' },
-          { kaynak: 'storage-backup', tip: 'Orphan Kaynak', tasarruf: 410, oncelik: 'orta' },
-        ],
-      }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      toast.success('Test e-postası gönderildi! Gelen kutunuzu kontrol edin.')
-    } else {
-      toast.error('Hata: ' + data.error)
+  async function handleTestEmail() {
+    if (!notifForm.email) {
+      toast.error('Önce e-posta adresinizi girin')
+      return
     }
-  } catch {
-    toast.error('E-posta gönderilemedi')
+    setSendingTest(true)
+    try {
+      const res = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: notifForm.email,
+          companyName: 'UnifyTech',
+          resourcesScanned: 47,
+          recommendationsFound: 5,
+          totalCost: 9600,
+          estimatedSaving: 1970,
+          recommendations: [
+            { kaynak: 'prod-vm-01', tip: 'Boşta VM', tasarruf: 820, oncelik: 'yüksek' },
+            { kaynak: 'dev-vm-02', tip: 'Boşta VM', tasarruf: 340, oncelik: 'yüksek' },
+            { kaynak: 'storage-backup', tip: 'Orphan Kaynak', tasarruf: 410, oncelik: 'orta' },
+          ],
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast.success('Test e-postası gönderildi! Gelen kutunuzu kontrol edin.')
+      } else {
+        toast.error('Hata: ' + data.error)
+      }
+    } catch {
+      toast.error('E-posta gönderilemedi')
+    }
+    setSendingTest(false)
   }
-  setSendingTest(false)
-}
 
   return (
     <div className="p-6 max-w-4xl">
@@ -166,6 +307,7 @@ async function handleTestEmail() {
         {[
           { key: 'azure', label: 'Azure Bağlantısı' },
           { key: 'notifications', label: 'Bildirimler' },
+          { key: 'team', label: 'Takım' },
           { key: 'account', label: 'Hesap' },
         ].map(tab => (
           <button
@@ -197,7 +339,6 @@ async function handleTestEmail() {
 
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h3 className="text-sm font-semibold text-white mb-4">Azure Service Principal Bilgileri</h3>
-
             {[
               { label: 'Subscription ID', key: 'subscriptionId', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', type: 'text' },
               { label: 'Tenant ID (Directory ID)', key: 'tenantId', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', type: 'text' },
@@ -221,18 +362,13 @@ async function handleTestEmail() {
               </div>
             ))}
             <p className="text-xs text-gray-600">Client Secret şifrelenmiş olarak saklanır</p>
-
             <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={handleAzureSave}
                 disabled={saving}
                 className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
               >
-                {saving ? (
-                  <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />Kaydediliyor...</>
-                ) : saved ? (
-                  <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Kaydedildi!</>
-                ) : 'Kaydet'}
+                {saving ? <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />Kaydediliyor...</> : 'Kaydet'}
               </button>
               <button
                 onClick={handleTestConnection}
@@ -245,7 +381,6 @@ async function handleTestEmail() {
             </div>
           </div>
 
-          {/* Bağlantı Durumu */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <h3 className="text-sm font-semibold text-white mb-4">Bağlantı Durumu</h3>
             <div className="flex items-center gap-3">
@@ -275,7 +410,6 @@ async function handleTestEmail() {
       {activeTab === 'notifications' && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
           <h3 className="text-sm font-semibold text-white">E-posta Bildirimleri</h3>
-
           <div>
             <label className="block text-xs text-gray-400 mb-1.5">Bildirim E-postası</label>
             <input
@@ -286,7 +420,6 @@ async function handleTestEmail() {
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
-
           <div className="space-y-4">
             <p className="text-xs text-gray-500 uppercase tracking-wider">Bildirim Tercihleri</p>
             {[
@@ -308,7 +441,6 @@ async function handleTestEmail() {
               </div>
             ))}
           </div>
-
           <div>
             <label className="block text-xs text-gray-400 mb-1.5">Maliyet Alarm Eşiği ($)</label>
             <input
@@ -319,39 +451,32 @@ async function handleTestEmail() {
             />
             <p className="text-xs text-gray-600 mt-1">Günlük maliyet bu değeri aşarsa alarm gönderilir</p>
           </div>
-
           <div className="flex items-center gap-3">
             <button
               onClick={handleNotifSave}
               disabled={saving}
               className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
             >
-              {saving ? (
-                <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />Kaydediliyor...</>
-              ) : saved ? (
-                <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Kaydedildi!</>
-              ) : 'Kaydet'}
+              {saving ? <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />Kaydediliyor...</> : 'Kaydet'}
             </button>
-
             <button
               onClick={handleTestEmail}
               disabled={sendingTest || !notifForm.email}
               className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 disabled:opacity-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
             >
-              {sendingTest ? (
-                <><div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />Gönderiliyor...</>
-              ) : (
-                <>
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Test E-postası Gönder
-                </>
-              )}
+              {sendingTest ? <><div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />Gönderiliyor...</> : <>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Test E-postası Gönder
+              </>}
             </button>
           </div>
         </div>
       )}
+
+      {/* Takım */}
+      {activeTab === 'team' && <TeamTab />}
 
       {/* Hesap */}
       {activeTab === 'account' && (
@@ -376,7 +501,6 @@ async function handleTestEmail() {
               ))}
             </div>
           </div>
-
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <h3 className="text-sm font-semibold text-white mb-2">Pro Plana Geç</h3>
             <p className="text-xs text-gray-500 mb-4">Sınırsız kaynak, 1 saatlik tarama ve 90 günlük veri saklama</p>
@@ -384,7 +508,6 @@ async function handleTestEmail() {
               Pro'ya Yükselt — $49/ay
             </button>
           </div>
-
           <div className="bg-red-900/10 border border-red-900/30 rounded-xl p-6">
             <h3 className="text-sm font-semibold text-red-400 mb-2">Tehlikeli Bölge</h3>
             <p className="text-xs text-gray-500 mb-4">Hesabınızı ve tüm verilerinizi kalıcı olarak silersiniz.</p>
