@@ -23,6 +23,21 @@ export default function LoginPage() {
     }
   }
 
+  async function handleGoogleLogin() {
+    setLoading(true)
+    setError('')
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback-handler`,
+      },
+    })
+    if (error) {
+      setError('Giriş yapılırken hata oluştu.')
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex">
       {/* Sol panel */}
@@ -32,9 +47,9 @@ export default function LoginPage() {
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
         <div className="relative z-10 flex flex-col items-center text-center">
 
-          {/* Logo alanı - büyük ekran */}
+          {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
-            <span className="text-white font-bold text-4xl tracking-tight">UnifyTech</span>
+            <span className="text-white font-bold text-4xl tracking-tight">Unify</span><span className="text-blue-400 font-light text-4xl tracking-tight">Tech</span>
             <span className="text-gray-400 font-light text-lg tracking-widest mt-1">BİLGİ SİSTEMLERİ</span>
           </div>
 
@@ -43,6 +58,7 @@ export default function LoginPage() {
           <p className="text-gray-400 max-w-sm leading-relaxed">
             Azure kaynaklarınızı 8 saatte bir otomatik tarayın, kullanılmayan kaynakları tespit edin ve maliyetlerinizi optimize edin.
           </p>
+
           <div className="mt-12 grid grid-cols-3 gap-8 w-full max-w-sm">
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-400">%40</p>
@@ -64,15 +80,15 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 bg-gray-950 flex flex-col items-center justify-center p-8">
         <div className="w-full max-w-sm">
 
-          {/* Logo alanı - mobil */}
+          {/* Mobilde logo */}
           <div className="lg:hidden flex items-center gap-3 mb-10 justify-center">
-            <span className="text-white font-bold text-3xl tracking-tight">UnifyTech</span>
+            <span className="text-white font-bold text-3xl tracking-tight">Unify</span><span className="text-blue-400 font-light text-3xl tracking-tight">Tech</span>
             <span className="text-gray-400 font-light text-base tracking-widest mt-1">BİLGİ SİSTEMLERİ</span>
           </div>
 
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-white">Hoş geldiniz</h1>
-            <p className="text-gray-400 mt-1 text-sm">Devam etmek için Microsoft hesabınızla giriş yapın</p>
+            <p className="text-gray-400 mt-1 text-sm">Hesabınızla giriş yapın</p>
           </div>
 
           {error && (
@@ -81,6 +97,7 @@ export default function LoginPage() {
             </div>
           )}
 
+          {/* Microsoft butonu */}
           <button
             onClick={handleMicrosoftLogin}
             disabled={loading}
@@ -95,28 +112,44 @@ export default function LoginPage() {
             {loading ? 'Yönlendiriliyor...' : 'Microsoft ile Giriş Yap'}
           </button>
 
-          <div className="mt-6 flex items-center gap-3">
+          {/* Ayraç */}
+          <div className="my-4 flex items-center gap-3">
             <div className="flex-1 h-px bg-gray-800" />
             <span className="text-gray-600 text-xs">veya</span>
             <div className="flex-1 h-px bg-gray-800" />
           </div>
 
+          {/* Google butonu */}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 text-gray-900 font-medium rounded-xl py-3.5 transition-all duration-150 shadow-lg shadow-black/20"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            {loading ? 'Yönlendiriliyor...' : 'Google ile Giriş Yap'}
+          </button>
+
           <div className="mt-6 bg-gray-900 rounded-xl p-4 border border-gray-800">
             <p className="text-xs text-gray-500 leading-relaxed">
               <span className="text-gray-300 font-medium">İlk kez mi giriş yapıyorsunuz?</span>
               <br />
-              Microsoft hesabınızla giriş yaptığınızda şirket hesabınız otomatik olarak oluşturulur.
+              Hesabınızla giriş yaptığınızda şirket hesabınız otomatik olarak oluşturulur. Ek bir kayıt işlemi gerekmez.
             </p>
           </div>
 
-          <div className="mt-8 flex items-center justify-center gap-6">
+          <div className="mt-6 flex items-center justify-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
               <span className="text-xs text-gray-500">Güvenli bağlantı</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-              <span className="text-xs text-gray-500">Azure AD korumalı</span>
+              <span className="text-xs text-gray-500">OAuth 2.0 korumalı</span>
             </div>
           </div>
 
