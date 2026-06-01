@@ -40,42 +40,16 @@ export default function LandingPage() {
         .landing .stat-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 700; color: var(--white); letter-spacing: -1px; }
         .landing .stat-num span { color: var(--blue); }
         .landing .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
-        .landing .preview-section { padding: 40px 60px 120px; }
-        .landing .preview-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
-        .landing .preview-bar { display: flex; align-items: center; gap: 8px; padding: 16px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); }
-        .landing .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .landing .dot-red { background: #ff5f57; } .landing .dot-yellow { background: #ffbd2e; } .landing .dot-green { background: #28c840; }
-        .landing .preview-url { flex: 1; text-align: center; font-size: 12px; color: var(--muted); }
-        .landing .preview-content { display: grid; grid-template-columns: 200px 1fr; min-height: 480px; }
-        .landing .preview-sidebar { background: #0a0a12; border-right: 1px solid var(--border); padding: 20px 0; }
-        .landing .sidebar-logo { padding: 0 20px 20px; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
-        .landing .sidebar-logo span { color: var(--blue); }
-        .landing .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 13px; color: var(--muted); }
-        .landing .sidebar-item.active { color: #7aa3ff; background: rgba(36,97,255,0.08); border-right: 2px solid var(--blue); }
-        .landing .sidebar-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
-        .landing .sidebar-item.active .sidebar-dot { background: var(--blue); }
-        .landing .preview-main { padding: 24px; }
-        .landing .metric-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
-        .landing .metric-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-        .landing .metric-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        .landing .metric-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--white); margin-top: 6px; }
-        .landing .metric-value.green { color: var(--green); } .landing .metric-value.orange { color: #ff9d4e; }
-        .landing .metric-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
-        .landing .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
-        .landing .chart-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-        .landing .chart-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 12px; }
-        .landing .mini-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
-        .landing .bar { flex: 1; border-radius: 3px 3px 0 0; background: rgba(36,97,255,0.3); }
-        .landing .bar.highlight { background: var(--blue); }
-        .landing .features-section { padding: 120px 60px; }
         .landing .section-eyebrow { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); margin-bottom: 16px; font-weight: 500; }
         .landing .section-title { font-family: 'Syne', sans-serif; font-size: clamp(36px,4vw,54px); font-weight: 700; letter-spacing: -2px; line-height: 1.1; max-width: 600px; margin-bottom: 60px; }
+        .landing .features-section { padding: 120px 60px; }
         .landing .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
         .landing .feature-card { background: var(--surface); padding: 40px 36px; transition: background 0.3s; }
         .landing .feature-card:hover { background: var(--surface2); }
         .landing .feature-icon { width: 48px; height: 48px; background: var(--blue-glow); border: 1px solid rgba(36,97,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; font-size: 22px; }
         .landing .feature-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 12px; color: var(--white); }
         .landing .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.7; font-weight: 300; }
+        .landing .new-badge { display: inline-block; background: linear-gradient(135deg, #2461ff, #00e5a0); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px; margin-left: 8px; vertical-align: middle; letter-spacing: 0.05em; }
         .landing .how-section { padding: 120px 60px; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
         .landing .steps-grid { display: grid; grid-template-columns: repeat(4,1fr); position: relative; margin-top: 60px; }
         .landing .steps-grid::before { content: ''; position: absolute; top: 32px; left: 10%; width: 80%; height: 1px; background: linear-gradient(90deg, transparent, var(--blue), transparent); }
@@ -84,12 +58,26 @@ export default function LandingPage() {
         .landing .step:hover .step-num { background: var(--blue-glow); border-color: var(--blue); transform: scale(1.1); }
         .landing .step-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 10px; }
         .landing .step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300; }
+        .landing .ai-section { padding: 120px 60px; position: relative; overflow: hidden; }
+        .landing .ai-section::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 800px; height: 500px; background: radial-gradient(ellipse, rgba(36,97,255,0.08) 0%, transparent 70%); pointer-events: none; }
+        .landing .ai-card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; position: relative; overflow: hidden; }
+        .landing .ai-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--blue), transparent); }
+        .landing .ai-chat-preview { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+        .landing .chat-msg { margin-bottom: 12px; }
+        .landing .chat-msg.user { display: flex; justify-content: flex-end; }
+        .landing .chat-msg.ai { display: flex; justify-content: flex-start; }
+        .landing .chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+        .landing .chat-bubble.user { background: var(--blue); color: #fff; border-bottom-right-radius: 4px; }
+        .landing .chat-bubble.ai { background: #1a1a2e; color: var(--text); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+        .landing .chat-input { display: flex; gap: 8px; margin-top: 12px; }
+        .landing .chat-input-field { flex: 1; background: var(--black); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--muted); }
+        .landing .chat-send { background: var(--blue); border: none; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 12px; cursor: pointer; }
         .landing .pricing-section { padding: 120px 60px; }
         .landing .pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 60px; max-width: 900px; margin-left: auto; margin-right: auto; }
         .landing .pricing-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; transition: transform 0.3s, border-color 0.3s; position: relative; }
         .landing .pricing-card:hover { transform: translateY(-4px); }
         .landing .pricing-card.popular { border-color: var(--blue); background: linear-gradient(160deg, rgba(36,97,255,0.08) 0%, var(--surface) 60%); }
-        .landing .popular-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--blue); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; padding: 4px 16px; border-radius: 100px; text-transform: uppercase; white-space: nowrap; }
+        .landing .popular-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--blue); color: #fff; font-size: 11px; font-weight: 600; padding: 4px 16px; border-radius: 100px; text-transform: uppercase; white-space: nowrap; }
         .landing .plan-name { font-size: 13px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 12px; }
         .landing .plan-price { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; letter-spacing: -2px; color: var(--white); margin-bottom: 4px; }
         .landing .plan-price sup { font-size: 24px; vertical-align: super; }
@@ -120,12 +108,9 @@ export default function LandingPage() {
           .landing .stats-bar { flex-direction: column; }
           .landing .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
           .landing .features-grid, .landing .pricing-grid, .landing .steps-grid { grid-template-columns: 1fr; }
-          .landing .preview-section, .landing .features-section, .landing .how-section, .landing .pricing-section, .landing .cta-section { padding: 60px 24px; }
+          .landing .ai-card { grid-template-columns: 1fr; }
+          .landing .features-section, .landing .how-section, .landing .ai-section, .landing .pricing-section, .landing .cta-section { padding: 60px 24px; }
           .landing footer { flex-direction: column; gap: 20px; text-align: center; }
-          .landing .preview-content { grid-template-columns: 1fr; }
-          .landing .preview-sidebar { display: none; }
-          .landing .metric-row { grid-template-columns: repeat(2,1fr); }
-          .landing .chart-row { grid-template-columns: 1fr; }
         }
       `}</style>
 
@@ -136,6 +121,7 @@ export default function LandingPage() {
           <a href="/" className="nav-logo">Unify<span>Tech</span></a>
           <div className="nav-links">
             <a href="#features">Özellikler</a>
+            <a href="#ai">AI Asistan</a>
             <a href="#how">Nasıl Çalışır</a>
             <a href="#pricing">Fiyatlar</a>
             <Link href="/dashboard">Giriş Yap</Link>
@@ -145,9 +131,9 @@ export default function LandingPage() {
 
         {/* HERO */}
         <section className="hero">
-          <div className="hero-badge">Azure Cost Management Platform</div>
+          <div className="hero-badge">🆕 Yeni: Gemini AI Asistan eklendi!</div>
           <h1>Azure maliyetlerinizi<br /><span className="accent">akıllıca yönetin</span></h1>
-          <p>8 saatte bir otomatik tarama yapın, kullanılmayan kaynakları tespit edin ve Azure faturanızı ortalama %40 azaltın.</p>
+          <p>8 saatte bir otomatik tarama, AI destekli maliyet analizi ve akıllı optimizasyon önerileri ile Azure faturanızı ortalama %40 azaltın.</p>
           <div className="hero-actions">
             <Link href="/dashboard" className="btn-primary">
               Ücretsiz Deneyin
@@ -162,69 +148,7 @@ export default function LandingPage() {
             <div className="stat-item"><div className="stat-num"><span>%</span>40</div><div className="stat-label">Ortalama Tasarruf</div></div>
             <div className="stat-item"><div className="stat-num">8<span>s</span></div><div className="stat-label">Tarama Sıklığı</div></div>
             <div className="stat-item"><div className="stat-num">7/24</div><div className="stat-label">Otomatik İzleme</div></div>
-            <div className="stat-item"><div className="stat-num">5<span>dk</span></div><div className="stat-label">Kurulum Süresi</div></div>
-          </div>
-        </section>
-
-        {/* DASHBOARD PREVİEW */}
-        <section className="preview-section">
-          <div className="preview-wrapper">
-            <div className="preview-bar">
-              <div className="dot dot-red"></div>
-              <div className="dot dot-yellow"></div>
-              <div className="dot dot-green"></div>
-              <div className="preview-url">azure-cost-saas.vercel.app/dashboard</div>
-            </div>
-            <div className="preview-content">
-              <div className="preview-sidebar">
-                <div className="sidebar-logo">Unify<span>Tech</span><br /><span style={{fontSize:'10px',color:'#5a5870',fontWeight:400}}>Azure Cost</span></div>
-                <div className="sidebar-item active"><div className="sidebar-dot"></div>Dashboard</div>
-                <div className="sidebar-item"><div className="sidebar-dot"></div>Kaynaklar</div>
-                <div className="sidebar-item"><div className="sidebar-dot"></div>Öneriler</div>
-                <div className="sidebar-item"><div className="sidebar-dot"></div>Raporlar</div>
-                <div className="sidebar-item"><div className="sidebar-dot"></div>Ayarlar</div>
-              </div>
-              <div className="preview-main">
-                <div className="metric-row">
-                  <div className="metric-card"><div className="metric-label">Aylık Maliyet</div><div className="metric-value">$9,600</div><div className="metric-sub" style={{color:'#ff6b6b'}}>↑ %12 geçen ay</div></div>
-                  <div className="metric-card"><div className="metric-label">Tasarruf Fırsatı</div><div className="metric-value green">$1,970</div><div className="metric-sub">%21 tasarruf mümkün</div></div>
-                  <div className="metric-card"><div className="metric-label">Aktif Kaynak</div><div className="metric-value">47</div><div className="metric-sub" style={{color:'#ffbd2e'}}>5 dikkat gerektiriyor</div></div>
-                  <div className="metric-card"><div className="metric-label">Ay Sonu Tahmini</div><div className="metric-value orange">$11,200</div><div className="metric-sub">Mevcut trendde</div></div>
-                </div>
-                <div className="chart-row">
-                  <div className="chart-card">
-                    <div className="chart-title">Son 7 Günlük Maliyet Trendi</div>
-                    <div className="mini-chart">
-                      <div className="bar" style={{height:'62%'}}></div>
-                      <div className="bar" style={{height:'75%'}}></div>
-                      <div className="bar" style={{height:'55%'}}></div>
-                      <div className="bar highlight" style={{height:'82%'}}></div>
-                      <div className="bar" style={{height:'70%'}}></div>
-                      <div className="bar" style={{height:'45%'}}></div>
-                      <div className="bar" style={{height:'52%'}}></div>
-                    </div>
-                  </div>
-                  <div className="chart-card">
-                    <div className="chart-title">Kaynak Dağılımı</div>
-                    <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
-                      {[
-                        {label:'VMs $4,200', pct:'44%', color:'#2461ff'},
-                        {label:'SQL $2,100', pct:'22%', color:'#00e5a0'},
-                        {label:'Storage $1,800', pct:'19%', color:'#8b5cf6'},
-                        {label:'App $900', pct:'9%', color:'#ff9d4e'},
-                      ].map((item,i) => (
-                        <div key={i} style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                          <div style={{flex:1,height:'6px',background:'rgba(255,255,255,0.05)',borderRadius:'3px',overflow:'hidden'}}>
-                            <div style={{width:item.pct,height:'100%',background:item.color,borderRadius:'3px'}}></div>
-                          </div>
-                          <span style={{fontSize:'11px',color:'#7a788a',width:'90px'}}>{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div className="stat-item"><div className="stat-num">AI</div><div className="stat-label">Destekli Analiz</div></div>
           </div>
         </section>
 
@@ -234,19 +158,84 @@ export default function LandingPage() {
           <h2 className="section-title">Azure maliyetlerini kontrol altına alan her şey</h2>
           <div className="features-grid">
             {[
-              { icon: '🔍', title: 'Otomatik Kaynak Tarama', desc: 'Azure subscription\'ınızı 8 saatte bir otomatik olarak tarar. VM\'ler, diskler, public IP\'ler ve tüm kaynakları anlık olarak izler.' },
-              { icon: '💡', title: 'Akıllı Optimizasyon Önerileri', desc: 'Boşta kalan VM\'leri, bağlantısız diskleri ve kullanılmayan IP adreslerini tespit eder. Her öneri için tahmini aylık tasarruf gösterir.' },
-              { icon: '📊', title: 'Gelişmiş Maliyet Analizi', desc: 'Kaynak türüne göre maliyet dağılımı, aylık trend grafikleri ve ay sonu tahmini ile bütçenizi her zaman kontrol altında tutun.' },
-              { icon: '📧', title: 'Otomatik E-posta Bildirimleri', desc: 'Her tarama sonrası IT adminlerine detaylı rapor e-postası gönderilir. Maliyet alarmları ve haftalık özetlerle hiçbir şeyi kaçırmayın.' },
-              { icon: '🔐', title: 'Microsoft SSO ile Güvenli Giriş', desc: 'Azure AD entegrasyonu sayesinde çalışanlarınız kendi Microsoft iş hesaplarıyla güvenli bir şekilde sisteme erişir.' },
-              { icon: '🏢', title: 'Multi-Tenant Mimari', desc: 'Her şirketin verileri tamamen izole edilmiş şekilde saklanır. Row Level Security ile güçlü veri güvenliği sağlanır.' },
+              { icon: '🔍', title: 'Otomatik Kaynak Tarama', desc: 'Azure subscription\'ınızı 8 saatte bir otomatik olarak tarar. VM\'ler, diskler, public IP\'ler ve tüm kaynakları anlık izler.', isNew: false },
+              { icon: '🤖', title: 'Gemini AI Asistan', desc: '"Bu ay neden bu kadar harcadım?" gibi sorular sorun, AI gerçek verilerinizi analiz edip Türkçe cevaplar versin.', isNew: true },
+              { icon: '💡', title: 'Akıllı Optimizasyon', desc: 'Boşta kalan VM\'leri, bağlantısız diskleri ve kullanılmayan IP\'leri tespit eder. Her öneri için tahmini aylık tasarruf gösterir.', isNew: false },
+              { icon: '📊', title: 'Gelişmiş Maliyet Analizi', desc: 'Kaynak türüne göre maliyet dağılımı, aylık trend grafikleri ve ay sonu tahmini ile bütçenizi kontrol altında tutun.', isNew: false },
+              { icon: '💰', title: 'Bütçe Yönetimi', desc: 'Aylık bütçe limiti belirleyin, eşik aşıldığında otomatik uyarı alın. Harcamalarınızı gerçek zamanlı takip edin.', isNew: true },
+              { icon: '👥', title: 'Takım Yönetimi', desc: 'IT adminlerinizi platforma davet edin. E-posta ile davet gönderin, rol tabanlı erişim kontrolü yapın.', isNew: true },
+              { icon: '📧', title: 'Otomatik Bildirimler', desc: 'Her tarama sonrası IT adminlerine detaylı rapor e-postası gönderilir. Maliyet alarmları ve haftalık özetler.', isNew: false },
+              { icon: '🔐', title: 'Çoklu Giriş Seçeneği', desc: 'Microsoft iş hesabı veya Google hesabınızla güvenli giriş yapın. Azure AD entegrasyonu ile kurumsal SSO desteği.', isNew: true },
+              { icon: '🏢', title: 'Multi-Tenant Mimari', desc: 'Her şirketin verileri tamamen izole edilmiş şekilde saklanır. Row Level Security ile güçlü veri güvenliği.', isNew: false },
             ].map((f, i) => (
               <div key={i} className="feature-card">
                 <div className="feature-icon">{f.icon}</div>
-                <div className="feature-title">{f.title}</div>
+                <div className="feature-title">
+                  {f.title}
+                  {f.isNew && <span className="new-badge">YENİ</span>}
+                </div>
                 <p className="feature-desc">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* AI SECTION */}
+        <section className="ai-section" id="ai">
+          <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+            <div className="section-eyebrow">Yapay Zeka</div>
+            <h2 className="section-title">Azure maliyetlerinizi AI ile anlayın</h2>
+            <div className="ai-card">
+              <div>
+                <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(36,97,255,0.1)',border:'1px solid rgba(36,97,255,0.3)',color:'#7aa3ff',fontSize:'12px',padding:'4px 12px',borderRadius:'100px',marginBottom:'24px'}}>
+                  🤖 Gemini AI ile Güçlendirildi
+                </div>
+                <h3 style={{fontFamily:'Syne, sans-serif',fontSize:'28px',fontWeight:'700',letterSpacing:'-1px',color:'var(--white)',marginBottom:'16px',lineHeight:'1.2'}}>
+                  Sorularınızı doğal dilde sorun
+                </h3>
+                <p style={{color:'var(--muted)',fontSize:'15px',lineHeight:'1.7',marginBottom:'32px',fontWeight:'300'}}>
+                  AI asistan gerçek Azure verilerinizi analiz ederek maliyet optimizasyonu konusunda kişiselleştirilmiş öneriler sunar.
+                </p>
+                <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+                  {[
+                    { icon: '💬', text: 'Türkçe doğal dil ile soru sorun' },
+                    { icon: '📊', text: 'Gerçek verilerinize dayalı analizler' },
+                    { icon: '💡', text: 'Kişiselleştirilmiş tasarruf önerileri' },
+                    { icon: '⚡', text: 'Anlık cevaplar, sohbet geçmişi' },
+                  ].map((item, i) => (
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:'12px'}}>
+                      <span style={{fontSize:'18px'}}>{item.icon}</span>
+                      <span style={{fontSize:'14px',color:'var(--muted)'}}>{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+                <Link href="/dashboard" style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'var(--blue)',color:'#fff',padding:'12px 24px',borderRadius:'10px',fontSize:'14px',fontWeight:'500',textDecoration:'none',marginTop:'32px',transition:'background 0.2s'}}>
+                  AI Asistanı Deneyin →
+                </Link>
+              </div>
+
+              {/* Chat Preview */}
+              <div className="ai-chat-preview">
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px',paddingBottom:'12px',borderBottom:'1px solid var(--border)'}}>
+                  <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'var(--green)',animation:'pulse 2s infinite'}}></div>
+                  <span style={{fontSize:'12px',color:'var(--muted)'}}>Azure AI Asistan · Çevrimiçi</span>
+                </div>
+                {[
+                  { role: 'user', text: 'Bu ay neden bu kadar harcadım?' },
+                  { role: 'ai', text: 'Analizime göre bu ay harcamanız geçen aya göre %12 arttı. Başlıca sebep: prod-vm-01 ve dev-vm-02 VM\'leri 7 gündür boşta çalışıyor. Bu iki kaynağı kapatarak aylık $1,160 tasarruf edebilirsiniz.' },
+                  { role: 'user', text: 'Peki nasıl tasarruf edebilirim?' },
+                  { role: 'ai', text: 'Önerilerim: 1) Boşta VM\'leri durdurun ($820/ay), 2) Orphan disk\'i silin ($410/ay), 3) Kullanılmayan Public IP\'yi kaldırın ($120/ay). Toplam potansiyel tasarruf: $1,350/ay 🎯' },
+                ].map((msg, i) => (
+                  <div key={i} className={`chat-msg ${msg.role}`}>
+                    <div className={`chat-bubble ${msg.role}`}>{msg.text}</div>
+                  </div>
+                ))}
+                <div className="chat-input">
+                  <div className="chat-input-field">Soru sorun...</div>
+                  <button className="chat-send">→</button>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -257,10 +246,10 @@ export default function LandingPage() {
             <h2 className="section-title">5 dakikada kurulumu tamamlayın</h2>
             <div className="steps-grid">
               {[
-                { num: 1, title: 'Hesap Oluşturun', desc: 'Microsoft iş hesabınızla saniyeler içinde kayıt olun.' },
+                { num: 1, title: 'Hesap Oluşturun', desc: 'Microsoft veya Google hesabınızla saniyeler içinde kayıt olun.' },
                 { num: 2, title: "Azure'u Bağlayın", desc: 'Service Principal oluşturun ve bilgilerinizi girin.' },
                 { num: 3, title: 'Taramayı Başlatın', desc: 'İlk tarama dakikalar içinde tamamlanır.' },
-                { num: 4, title: 'Tasarruf Edin', desc: 'Önerileri uygulayın, Azure faturanızı düşürün.' },
+                { num: 4, title: 'AI ile Analiz Edin', desc: 'AI asistana sorular sorun, tasarruf fırsatlarını keşfedin.' },
               ].map((s, i) => (
                 <div key={i} className="step">
                   <div className="step-num">{s.num}</div>
@@ -288,7 +277,8 @@ export default function LandingPage() {
                 <li>8 saatlik tarama</li>
                 <li>30 günlük veri saklama</li>
                 <li>E-posta bildirimleri</li>
-                <li>Temel dashboard</li>
+                <li>AI Asistan (günde 20 soru)</li>
+                <li>Google & Microsoft giriş</li>
               </ul>
               <Link href="/dashboard" className="plan-cta ghost">Ücretsiz Başla</Link>
             </div>
@@ -301,8 +291,8 @@ export default function LandingPage() {
                 <li>Sınırsız kaynak</li>
                 <li>1 saatlik tarama</li>
                 <li>90 günlük veri saklama</li>
-                <li>Öncelikli e-posta desteği</li>
-                <li>Gelişmiş raporlama</li>
+                <li>Sınırsız AI Asistan</li>
+                <li>Takım yönetimi (10 kullanıcı)</li>
                 <li>Slack & Teams bildirimleri</li>
               </ul>
               <Link href="/dashboard" className="plan-cta primary">Pro&apos;ya Geç</Link>
@@ -315,8 +305,8 @@ export default function LandingPage() {
                 <li>Birden fazla subscription</li>
                 <li>15 dakikalık tarama</li>
                 <li>Sınırsız veri saklama</li>
-                <li>Özel SLA garantisi</li>
-                <li>On-premise kurulum</li>
+                <li>Özel AI modeli</li>
+                <li>Sınırsız takım üyesi</li>
                 <li>7/24 teknik destek</li>
               </ul>
               <a href="mailto:info@unifytech.com.tr" className="plan-cta ghost">Teklif Alın</a>
@@ -327,7 +317,7 @@ export default function LandingPage() {
         {/* CTA */}
         <section className="cta-section">
           <h2>Azure faturanızı düşürmeye<br />bugün başlayın</h2>
-          <p>Kredi kartı gerekmez. 5 dakikada kurulum. İlk tarama ücretsiz.</p>
+          <p>Kredi kartı gerekmez. 5 dakikada kurulum. AI destekli analiz ücretsiz.</p>
           <Link href="/dashboard" className="btn-primary" style={{fontSize:'16px',padding:'16px 40px',display:'inline-flex',alignItems:'center',gap:'8px'}}>
             Ücretsiz Hesap Oluştur
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
@@ -339,6 +329,7 @@ export default function LandingPage() {
           <div className="footer-logo">Unify<span>Tech</span></div>
           <div className="footer-links">
             <a href="#features">Özellikler</a>
+            <a href="#ai">AI Asistan</a>
             <a href="#pricing">Fiyatlar</a>
             <Link href="/dashboard">Uygulamaya Gir</Link>
             <a href="mailto:info@unifytech.com.tr">İletişim</a>
