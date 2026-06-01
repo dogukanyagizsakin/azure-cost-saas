@@ -1,7 +1,9 @@
 'use client'
-import { toast } from 'sonner'
+
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
+import { Skeleton, RecommendationSkeleton } from '@/components/ui/Skeleton'
 
 type Recommendation = {
   id: string
@@ -35,10 +37,6 @@ export default function RecommendationsPage() {
   const [filterStatus, setFilterStatus] = useState('open')
   const [applying, setApplying] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadRecommendations()
-  }, [])
-
   async function loadRecommendations() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
@@ -53,10 +51,7 @@ export default function RecommendationsPage() {
 
     const { data } = await supabase
       .from('recommendations')
-      .select(`
-        *,
-        resources (name, resource_type, resource_group)
-      `)
+      .select(`*, resources (name, resource_type, resource_group)`)
       .eq('tenant_id', userData.tenant_id)
       .order('estimated_monthly_saving', { ascending: false })
 
@@ -64,20 +59,39 @@ export default function RecommendationsPage() {
     setLoading(false)
   }
 
-async function handleStatusChange(id: string, status: string) {
-  setApplying(id)
-  await supabase
-    .from('recommendations')
-    .update({ status })
-    .eq('id', id)
+  useEffect(() => {
+    loadRecommendations()
 
-  await loadRecommendations()
-  setApplying(null)
+    const channel = supabase
+      .channel('recommendations-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'recommendations',
+      }, () => {
+        loadRecommendations()
+      })
+      .subscribe()
 
-  if (status === 'applied') toast.success('Öneri uygulandı olarak işaretlendi!')
-  else if (status === 'dismissed') toast.info('Öneri reddedildi')
-  else toast.success('Öneri yeniden açıldı')
-}
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  async function handleStatusChange(id: string, status: string) {
+    setApplying(id)
+    await supabase
+      .from('recommendations')
+      .update({ status })
+      .eq('id', id)
+
+    await loadRecommendations()
+    setApplying(null)
+
+    if (status === 'applied') toast.success('Öneri uygulandı olarak işaretlendi!')
+    else if (status === 'dismissed') toast.info('Öneri reddedildi')
+    else toast.success('Öneri yeniden açıldı')
+  }
 
   const filtered = recommendations.filter(r =>
     filterStatus === 'all' ? true : r.status === filterStatus
@@ -89,8 +103,21 @@ async function handleStatusChange(id: string, status: string) {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="p-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <Skeleton className="h-3 w-24 mb-2" />
+              <Skeleton className="h-7 w-16" />
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 mb-6">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-8 w-20 rounded-lg" />)}
+        </div>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => <RecommendationSkeleton key={i} />)}
+        </div>
       </div>
     )
   }
@@ -116,8 +143,6 @@ async function handleStatusChange(id: string, status: string) {
 
   return (
     <div className="p-6">
-
-      {/* Özet */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Toplam Öneri</p>
@@ -137,7 +162,6 @@ async function handleStatusChange(id: string, status: string) {
         </div>
       </div>
 
-      {/* Filtre */}
       <div className="flex items-center gap-2 mb-6">
         {[
           { key: 'open', label: 'Açık' },
@@ -160,7 +184,6 @@ async function handleStatusChange(id: string, status: string) {
         <span className="text-xs text-gray-500 ml-2">{filtered.length} öneri</span>
       </div>
 
-      {/* Öneriler Listesi */}
       <div className="space-y-3">
         {filtered.map(r => {
           const priority = priorityColor(r.estimated_monthly_saving)

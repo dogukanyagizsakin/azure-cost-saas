@@ -1,5 +1,5 @@
 'use client'
-
+import { useEffect } from 'react'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'

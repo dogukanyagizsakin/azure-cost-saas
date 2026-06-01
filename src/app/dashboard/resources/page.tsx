@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { Skeleton, TableRowSkeleton } from '@/components/ui/Skeleton'
 
 type Resource = {
   id: string
@@ -43,18 +44,18 @@ export default function ResourcesPage() {
   const [filterType, setFilterType] = useState('all')
   const [hasAzure, setHasAzure] = useState(true)
 
-  useEffect(() => {
-    async function loadResources() {
+  async function loadResources() {
+    try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
+      if (!session) { setLoading(false); return }
 
-      const { data: userData } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('tenant_id')
         .eq('id', session.user.id)
         .single()
 
-      if (!userData) return
+      if (!userData) { setHasAzure(false); setLoading(false); return }
 
       const { data: tenant } = await supabase
         .from('tenants')
@@ -62,25 +63,39 @@ export default function ResourcesPage() {
         .eq('id', userData.tenant_id)
         .single()
 
-      if (!tenant?.azure_subscription_id) {
-        setHasAzure(false)
-        setLoading(false)
-        return
-      }
+      if (!tenant?.azure_subscription_id) { setHasAzure(false); setLoading(false); return }
 
       const { data } = await supabase
         .from('resources')
-        .select(`
-          *,
-          cost_snapshots (cost_usd)
-        `)
+        .select(`*, cost_snapshots (cost_usd)`)
         .eq('tenant_id', userData.tenant_id)
         .order('created_at', { ascending: false })
 
       setResources(data || [])
       setLoading(false)
+    } catch (err) {
+      console.error('loadResources error:', err)
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     loadResources()
+
+    const channel = supabase
+      .channel('resources-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'resources',
+      }, () => {
+        loadResources()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const filtered = resources.filter(r => {
@@ -96,8 +111,35 @@ export default function ResourcesPage() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="p-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <Skeleton className="h-3 w-24 mb-2" />
+              <Skeleton className="h-7 w-16" />
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-3 mb-6">
+          <Skeleton className="h-10 flex-1 rounded-lg" />
+          <Skeleton className="h-10 w-36 rounded-lg" />
+        </div>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-800">
+                {[...Array(6)].map((_, i) => (
+                  <th key={i} className="px-6 py-3 text-left">
+                    <Skeleton className="h-3 w-20" />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[...Array(8)].map((_, i) => <TableRowSkeleton key={i} />)}
+            </tbody>
+          </table>
+        </div>
       </div>
     )
   }
@@ -142,8 +184,6 @@ export default function ResourcesPage() {
 
   return (
     <div className="p-6">
-
-      {/* Özet Kartlar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Toplam Kaynak</p>
@@ -163,7 +203,6 @@ export default function ResourcesPage() {
         </div>
       </div>
 
-      {/* Filtreler */}
       <div className="flex items-center gap-3 mb-6">
         <div className="flex-1 relative">
           <svg className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,7 +232,6 @@ export default function ResourcesPage() {
         <span className="text-xs text-gray-500">{filtered.length} kaynak</span>
       </div>
 
-      {/* Kaynak Tablosu */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -207,7 +245,7 @@ export default function ResourcesPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((r, i) => {
+            {filtered.map((r) => {
               const cost = r.cost_snapshots?.reduce((s, c) => s + c.cost_usd, 0) || 0
               return (
                 <tr key={r.id} className="border-b border-gray-800/50 last:border-0 hover:bg-gray-800/30 transition-colors">
