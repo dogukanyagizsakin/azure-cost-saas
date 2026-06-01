@@ -10,79 +10,49 @@ export default function CallbackHandler() {
   useEffect(() => {
     const handleAuth = async () => {
       try {
+        // Session'ın oturması için bekle
+        await new Promise(r => setTimeout(r, 1000))
+
         const { data: { session } } = await supabase.auth.getSession()
 
         if (!session) {
-          router.push('/auth/login')
+          console.log('No session, redirecting to login')
+          window.location.href = '/auth/login'
           return
         }
 
-        const user = session.user
-        const email = user.email || ''
-        const fullName = user.user_metadata?.full_name ||
-          user.user_metadata?.name ||
-          email.split('@')[0]
+        console.log('Session found:', session.user.email)
 
-        // Kullanıcı users tablosunda var mı kontrol et
-        const { data: existingUser } = await supabase
-          .from('users')
-          .select('id, tenant_id')
-          .eq('id', user.id)
-          .maybeSingle()
+        // Server-side API ile kullanıcı kaydını oluştur
+        const response = await fetch('/api/auth/setup-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        })
 
-        if (!existingUser) {
-          // Yeni kullanıcı — tenant oluştur
-          const companyDomain = email.split('@')[1]?.split('.')[0] || 'company'
-          const slug = companyDomain.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now()
+        const data = await response.json()
+        console.log('Setup user result:', data)
 
-          const { data: tenant, error: tenantError } = await supabase
-            .from('tenants')
-            .insert({
-              name: companyDomain,
-              slug,
-              is_active: true,
-              plan: 'free',
-            })
-            .select()
-            .single()
-
-          if (tenantError) {
-            console.error('Tenant oluşturma hatası:', tenantError)
-            window.location.href = '/dashboard'
-            return
-          }
-
-          if (tenant) {
-            const { error: userError } = await supabase
-              .from('users')
-              .insert({
-                id: user.id,
-                tenant_id: tenant.id,
-                email,
-                full_name: fullName,
-                role: 'owner',
-              })
-
-            if (userError) {
-              console.error('Kullanıcı oluşturma hatası:', userError)
-            }
-
-            // Yeni kullanıcıyı onboarding'e yönlendir
-            window.location.href = '/onboarding'
-            return
-          }
+        if (data.error) {
+          console.error('Setup user error:', data.error)
+          // Hata olsa bile dashboard'a gönder
+          window.location.href = '/dashboard'
+          return
         }
 
-        // Mevcut kullanıcı — dashboard'a git
-        window.location.href = '/dashboard'
+        // Yeni kullanıcıyı onboarding'e, mevcutu dashboard'a yönlendir
+        if (data.isNew) {
+          window.location.href = '/onboarding'
+        } else {
+          window.location.href = '/dashboard'
+        }
 
       } catch (err) {
-        console.error('Callback handler hatası:', err)
+        console.error('Callback error:', err)
         window.location.href = '/dashboard'
       }
     }
 
-    setTimeout(handleAuth, 800)
+    handleAuth()
   }, [router])
 
   return (
@@ -90,6 +60,7 @@ export default function CallbackHandler() {
       <div className="text-white text-center">
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-gray-400">Giriş yapılıyor...</p>
+        <p className="text-gray-600 text-xs mt-2">Lütfen bekleyin...</p>
       </div>
     </div>
   )
