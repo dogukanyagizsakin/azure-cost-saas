@@ -441,7 +441,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-white">En Pahalı Kaynaklar</h2>
-            <button className="text-xs text-blue-400 hover:text-blue-300">Tümünü Gör</button>
+            <a href="/dashboard/resources" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">Tüm Kaynakları Gör</a>
           </div>
           <div className="space-y-1">
             {displayTopResources.map((r: any, i: number) => (
