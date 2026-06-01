@@ -1,35 +1,36 @@
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const body = await request.json()
+    const { subscriptionId, tenantId, clientId, clientSecret, accessToken } = body
 
-    if (!user) {
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // Token ile kullanıcıyı doğrula
+    let userId: string
+
+    if (accessToken) {
+      const { data: { user }, error } = await adminSupabase.auth.getUser(accessToken)
+      if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      userId = user.id
+    } else {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { subscriptionId, tenantId, clientId, clientSecret } = body
-
-    if (!subscriptionId || !tenantId || !clientId || !clientSecret) {
-      return NextResponse.json({ error: 'Tüm alanlar zorunludur' }, { status: 400 })
-    }
-
-    // Kullanıcının tenant'ını bul
-    const { data: userData } = await supabase
+    const { data: userData } = await adminSupabase
       .from('users')
       .select('tenant_id')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single()
 
-    if (!userData) {
-      return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 })
-    }
+    if (!userData) return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 })
 
-    // Tenant'ı güncelle
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('tenants')
       .update({
         azure_subscription_id: subscriptionId,
@@ -39,12 +40,10 @@ export async function POST(request: Request) {
       })
       .eq('id', userData.tenant_id)
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     return NextResponse.json({ success: true })
-  } catch (err) {
-    return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 })
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

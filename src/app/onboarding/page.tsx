@@ -28,47 +28,55 @@ export default function OnboardingPage() {
 
   const [notifEmail, setNotifEmail] = useState('')
 
-  async function handleTestConnection() {
-    setTesting(true)
-    try {
-      const response = await fetch('/api/azure/test-connection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(azureForm),
-      })
-      const data = await response.json()
-      if (data.success) {
-        setConnectionOk(true)
-        toast.success(`Bağlantı başarılı! Subscription: ${data.subscriptionName}`)
-      } else {
-        toast.error(data.error || 'Bağlantı başarısız')
-      }
-    } catch {
-      toast.error('Bağlantı testi başarısız')
+async function handleTestConnection() {
+  setTesting(true)
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const response = await fetch('/api/azure/test-connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...azureForm,
+        accessToken: session?.access_token,
+      }),
+    })
+    const data = await response.json()
+    if (data.success) {
+      setConnectionOk(true)
+      toast.success(`Bağlantı başarılı! Subscription: ${data.subscriptionName}`)
+    } else {
+      toast.error(data.error || 'Bağlantı başarısız')
     }
-    setTesting(false)
+  } catch {
+    toast.error('Bağlantı testi başarısız')
   }
+  setTesting(false)
+}
 
-  async function handleSaveAzure() {
-    setSaving(true)
-    try {
-      const response = await fetch('/api/azure/save-credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(azureForm),
-      })
-      const data = await response.json()
-      if (data.success) {
-        toast.success('Azure bilgileri kaydedildi!')
-        setCurrentStep(3)
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Kaydetme hatası')
+async function handleSaveAzure() {
+  setSaving(true)
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const response = await fetch('/api/azure/save-credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...azureForm,
+        accessToken: session?.access_token,
+      }),
+    })
+    const data = await response.json()
+    if (data.success) {
+      toast.success('Azure bilgileri kaydedildi!')
+      setCurrentStep(3)
+    } else {
+      toast.error(data.error)
     }
-    setSaving(false)
+  } catch {
+    toast.error('Kaydetme hatası')
   }
+  setSaving(false)
+}
 
   async function handleFinish() {
     setSaving(true)

@@ -1,15 +1,8 @@
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const body = await request.json()
     const { subscriptionId, tenantId, clientId, clientSecret } = body
 
@@ -39,29 +32,26 @@ export async function POST(request: Request) {
     const tokenData = await tokenResponse.json()
     const accessToken = tokenData.access_token
 
-    // Subscription'ı doğrula
+    // Subscription doğrula
     const subResponse = await fetch(
       `https://management.azure.com/subscriptions/${subscriptionId}?api-version=2022-12-01`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      { headers: { Authorization: `Bearer ${accessToken}` } }
     )
 
     if (!subResponse.ok) {
       return NextResponse.json({
         success: false,
-        error: 'Subscription erişilemiyor. Subscription ID ve roller kontrol edin.',
+        error: 'Subscription erişilemiyor. ID ve roller kontrol edin.',
       }, { status: 400 })
     }
 
     const subData = await subResponse.json()
-
     return NextResponse.json({
       success: true,
       subscriptionName: subData.displayName,
       state: subData.state,
     })
-  } catch (err) {
+  } catch (err: any) {
     return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 })
   }
 }
