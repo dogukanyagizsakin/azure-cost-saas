@@ -1,5 +1,5 @@
 'use client'
-
+import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -65,26 +65,25 @@ export default function SettingsPage() {
     loadSettings()
   }, [])
 
-  async function handleAzureSave() {
-    setSaving(true)
-    try {
-      const response = await fetch('/api/azure/save-credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(azureForm),
-      })
-      const data = await response.json()
-      if (data.success) {
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
-      } else {
-        alert('Hata: ' + data.error)
-      }
-    } catch {
-      alert('Kaydetme hatası')
+async function handleAzureSave() {
+  setSaving(true)
+  try {
+    const response = await fetch('/api/azure/save-credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(azureForm),
+    })
+    const data = await response.json()
+    if (data.success) {
+      toast.success('Azure bilgileri kaydedildi!')
+    } else {
+      toast.error('Hata: ' + data.error)
     }
-    setSaving(false)
+  } catch {
+    toast.error('Kaydetme sırasında hata oluştu')
   }
+  setSaving(false)
+}
 
   async function handleTestConnection() {
     setTesting(true)
@@ -113,44 +112,47 @@ export default function SettingsPage() {
   }
 
   async function handleNotifSave() {
-    setSaving(true)
-    await new Promise(r => setTimeout(r, 800))
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
-  }
+  setSaving(true)
+  await new Promise(r => setTimeout(r, 800))
+  setSaving(false)
+  toast.success('Bildirim ayarları kaydedildi!')
+}
 
-  async function handleTestEmail() {
-    if (!notifForm.email) {
-      alert('Önce e-posta adresinizi girin')
-      return
-    }
-    setSendingTest(true)
-    try {
-      const res = await fetch('/api/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: notifForm.email,
-          companyName: 'UnifyTech',
-          resourcesScanned: 47,
-          recommendationsFound: 5,
-          totalCost: 9600,
-          estimatedSaving: 1970,
-          recommendations: [
-            { kaynak: 'prod-vm-01', tip: 'Boşta VM', tasarruf: 820, oncelik: 'yüksek' },
-            { kaynak: 'dev-vm-02', tip: 'Boşta VM', tasarruf: 340, oncelik: 'yüksek' },
-            { kaynak: 'storage-backup', tip: 'Orphan Kaynak', tasarruf: 410, oncelik: 'orta' },
-          ],
-        }),
-      })
-      const data = await res.json()
-      alert(data.success ? '✅ Test e-postası gönderildi! Gelen kutunuzu kontrol edin.' : '❌ Hata: ' + data.error)
-    } catch {
-      alert('❌ E-posta gönderilemedi')
-    }
-    setSendingTest(false)
+async function handleTestEmail() {
+  if (!notifForm.email) {
+    toast.error('Önce e-posta adresinizi girin')
+    return
   }
+  setSendingTest(true)
+  try {
+    const res = await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: notifForm.email,
+        companyName: 'UnifyTech',
+        resourcesScanned: 47,
+        recommendationsFound: 5,
+        totalCost: 9600,
+        estimatedSaving: 1970,
+        recommendations: [
+          { kaynak: 'prod-vm-01', tip: 'Boşta VM', tasarruf: 820, oncelik: 'yüksek' },
+          { kaynak: 'dev-vm-02', tip: 'Boşta VM', tasarruf: 340, oncelik: 'yüksek' },
+          { kaynak: 'storage-backup', tip: 'Orphan Kaynak', tasarruf: 410, oncelik: 'orta' },
+        ],
+      }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      toast.success('Test e-postası gönderildi! Gelen kutunuzu kontrol edin.')
+    } else {
+      toast.error('Hata: ' + data.error)
+    }
+  } catch {
+    toast.error('E-posta gönderilemedi')
+  }
+  setSendingTest(false)
+}
 
   return (
     <div className="p-6 max-w-4xl">

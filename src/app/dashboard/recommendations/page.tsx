@@ -1,5 +1,5 @@
 'use client'
-
+import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -64,16 +64,20 @@ export default function RecommendationsPage() {
     setLoading(false)
   }
 
-  async function handleStatusChange(id: string, status: string) {
-    setApplying(id)
-    await supabase
-      .from('recommendations')
-      .update({ status })
-      .eq('id', id)
+async function handleStatusChange(id: string, status: string) {
+  setApplying(id)
+  await supabase
+    .from('recommendations')
+    .update({ status })
+    .eq('id', id)
 
-    await loadRecommendations()
-    setApplying(null)
-  }
+  await loadRecommendations()
+  setApplying(null)
+
+  if (status === 'applied') toast.success('Öneri uygulandı olarak işaretlendi!')
+  else if (status === 'dismissed') toast.info('Öneri reddedildi')
+  else toast.success('Öneri yeniden açıldı')
+}
 
   const filtered = recommendations.filter(r =>
     filterStatus === 'all' ? true : r.status === filterStatus

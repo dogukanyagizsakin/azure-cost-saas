@@ -1,5 +1,5 @@
 'use client'
-
+import { toast } from 'sonner'
 import { useState } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -65,25 +65,22 @@ export default function DashboardPage() {
   const aktifKaynak = 47
   const tahmin = 11200
 
-  async function handleScan() {
-    setScanning(true)
-    setScanResult(null)
-    try {
-      const response = await fetch('/api/scan', { method: 'POST' })
-      const data = await response.json()
-      if (data.success) {
-        setScanResult({
-          success: true,
-          message: `Tarama tamamlandı! ${data.resourcesScanned} kaynak tarandı, ${data.recommendationsFound} öneri bulundu.`
-        })
-      } else {
-        setScanResult({ success: false, message: data.error })
-      }
-    } catch {
-      setScanResult({ success: false, message: 'Tarama başarısız' })
+async function handleScan() {
+  setScanning(true)
+  const toastId = toast.loading('Azure kaynakları taranıyor...')
+  try {
+    const response = await fetch('/api/scan', { method: 'POST' })
+    const data = await response.json()
+    if (data.success) {
+      toast.success(`Tarama tamamlandı! ${data.resourcesScanned} kaynak, ${data.recommendationsFound} öneri bulundu.`, { id: toastId })
+    } else {
+      toast.error(data.error || 'Tarama başarısız', { id: toastId })
     }
-    setScanning(false)
+  } catch {
+    toast.error('Tarama sırasında bir hata oluştu', { id: toastId })
   }
+  setScanning(false)
+}
 
   return (
     <div className="p-6">
