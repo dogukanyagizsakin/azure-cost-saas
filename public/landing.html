@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UnifyTech — Azure Maliyet Yönetimi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #050508;
+    --white: #f8f7f4;
+    --blue: #2461ff;
+    --blue-dim: #1a45cc;
+    --blue-glow: rgba(36,97,255,0.15);
+    --surface: #0d0d14;
+    --surface2: #13131e;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e6f0;
+    --muted: #7a788a;
+    --green: #00e5a0;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 60px;
+    background: rgba(5,5,8,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .nav-logo span { color: var(--blue); }
+
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a {
+    color: var(--muted); font-size: 14px; text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--blue); color: #fff;
+    border: none; padding: 10px 24px;
+    border-radius: 8px; font-size: 14px; font-weight: 500;
+    cursor: pointer; text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .nav-cta:hover { background: var(--blue-dim); transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 40px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 800px;
+    background: radial-gradient(circle, rgba(36,97,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(36,97,255,0.1);
+    border: 1px solid rgba(36,97,255,0.3);
+    color: #7aa3ff; font-size: 13px;
+    padding: 6px 16px; border-radius: 100px;
+    margin-bottom: 32px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--blue);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(48px, 7vw, 88px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -3px;
+    max-width: 900px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .hero h1 .accent {
+    background: linear-gradient(135deg, #2461ff, #00e5a0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: 18px; color: var(--muted); max-width: 560px;
+    line-height: 1.7; margin-bottom: 48px;
+    animation: fadeUp 0.6s 0.2s ease both;
+    font-weight: 300;
+  }
+
+  .hero-actions {
+    display: flex; gap: 16px; align-items: center;
+    animation: fadeUp 0.6s 0.3s ease both;
+    margin-bottom: 80px;
+  }
+
+  .btn-primary {
+    background: var(--blue); color: #fff;
+    padding: 14px 32px; border-radius: 10px;
+    font-size: 15px; font-weight: 500;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { background: var(--blue-dim); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(36,97,255,0.35); }
+
+  .btn-ghost {
+    color: var(--muted); font-size: 15px;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex; gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  .stat-item {
+    padding: 20px 40px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .stat-item:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px; font-weight: 700;
+    color: var(--white);
+    letter-spacing: -1px;
+  }
+  .stat-num span { color: var(--blue); }
+  .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* DASHBOARD PREVIEW */
+  .preview-section {
+    padding: 40px 60px 120px;
+    position: relative;
+  }
+
+  .preview-wrapper {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .preview-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 16px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-red { background: #ff5f57; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #28c840; }
+
+  .preview-url {
+    flex: 1; text-align: center;
+    font-size: 12px; color: var(--muted);
+  }
+
+  .preview-content {
+    display: grid; grid-template-columns: 200px 1fr;
+    min-height: 480px;
+  }
+
+  .preview-sidebar {
+    background: #0a0a12;
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+  }
+
+  .sidebar-logo {
+    padding: 0 20px 20px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .sidebar-logo span { color: var(--blue); }
+
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    font-size: 13px; color: var(--muted);
+    cursor: default;
+  }
+  .sidebar-item.active {
+    color: #7aa3ff;
+    background: rgba(36,97,255,0.08);
+    border-right: 2px solid var(--blue);
+  }
+  .sidebar-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+  .sidebar-item.active .sidebar-dot { background: var(--blue); }
+
+  .preview-main { padding: 24px; }
+
+  .metric-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+
+  .metric-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .metric-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .metric-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--white); margin-top: 6px; }
+  .metric-value.green { color: var(--green); }
+  .metric-value.orange { color: #ff9d4e; }
+  .metric-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+
+  .chart-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .chart-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 12px; }
+
+  .mini-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+  .bar {
+    flex: 1; border-radius: 3px 3px 0 0;
+    background: rgba(36,97,255,0.3);
+    transition: background 0.2s;
+    animation: growUp 0.8s ease both;
+  }
+  .bar:hover { background: rgba(36,97,255,0.6); }
+  .bar.highlight { background: var(--blue); }
+
+  @keyframes growUp {
+    from { transform: scaleY(0); transform-origin: bottom; }
+    to { transform: scaleY(1); transform-origin: bottom; }
+  }
+
+  .mini-line {
+    width: 100%; height: 80px;
+    position: relative; overflow: hidden;
+  }
+
+  /* FEATURES */
+  .features-section {
+    padding: 120px 60px;
+  }
+
+  .section-eyebrow {
+    font-size: 12px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--blue);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 4vw, 54px);
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    max-width: 600px;
+    margin-bottom: 60px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    padding: 40px 36px;
+    transition: background 0.3s;
+  }
+  .feature-card:hover { background: var(--surface2); }
+
+  .feature-icon {
+    width: 48px; height: 48px;
+    background: var(--blue-glow);
+    border: 1px solid rgba(36,97,255,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 24px;
+    font-size: 22px;
+  }
+
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 12px; color: var(--white);
+  }
+
+  .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.7; font-weight: 300; }
+
+  /* HOW IT WORKS */
+  .how-section {
+    padding: 120px 60px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .steps-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0; position: relative;
+    margin-top: 60px;
+  }
+
+  .steps-grid::before {
+    content: '';
+    position: absolute; top: 32px; left: 10%;
+    width: 80%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  }
+
+  .step {
+    padding: 0 24px;
+    text-align: center;
+  }
+
+  .step-num {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--black);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--blue);
+    margin: 0 auto 24px;
+    position: relative; z-index: 1;
+    transition: all 0.3s;
+  }
+  .step:hover .step-num {
+    background: var(--blue-glow);
+    border-color: var(--blue);
+    transform: scale(1.1);
+  }
+
+  .step-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+  .step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300; }
+
+  /* PRICING */
+  .pricing-section { padding: 120px 60px; }
+
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 24px; margin-top: 60px; max-width: 900px; margin-left: auto; margin-right: auto;
+  }
+
+  .pricing-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+    transition: transform 0.3s, border-color 0.3s;
+    position: relative;
+  }
+  .pricing-card:hover { transform: translateY(-4px); }
+  .pricing-card.popular {
+    border-color: var(--blue);
+    background: linear-gradient(160deg, rgba(36,97,255,0.08) 0%, var(--surface) 60%);
+  }
+
+  .popular-badge {
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    background: var(--blue); color: #fff;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+    padding: 4px 16px; border-radius: 100px;
+    text-transform: uppercase;
+  }
+
+  .plan-name { font-size: 13px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 12px; }
+  .plan-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px; font-weight: 800;
+    letter-spacing: -2px;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .plan-price sup { font-size: 24px; vertical-align: super; }
+  .plan-period { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+  .plan-features { list-style: none; margin-bottom: 32px; }
+  .plan-features li {
+    font-size: 14px; color: var(--muted);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .plan-features li::before {
+    content: '✓';
+    color: var(--green);
+    font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .plan-cta {
+    display: block; text-align: center;
+    padding: 12px; border-radius: 10px;
+    font-size: 14px; font-weight: 500;
+    text-decoration: none; cursor: pointer;
+    transition: all 0.2s; border: none;
+    width: 100%;
+  }
+  .plan-cta.primary { background: var(--blue); color: #fff; }
+  .plan-cta.primary:hover { background: var(--blue-dim); }
+  .plan-cta.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .plan-cta.ghost:hover { border-color: rgba(255,255,255,0.2); }
+
+  /* CTA SECTION */
+  .cta-section {
+    padding: 120px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section::before {
+    content: '';
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(36,97,255,0.1) 0%, transparent 70%);
+  }
+
+  .cta-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 4vw, 60px);
+    font-weight: 800; letter-spacing: -2px;
+    max-width: 700px; margin: 0 auto 24px;
+    line-height: 1.1;
+  }
+
+  .cta-section p { font-size: 17px; color: var(--muted); margin-bottom: 40px; font-weight: 300; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 60px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .footer-logo { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+  .footer-logo span { color: var(--blue); }
+
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text); }
+
+  .footer-copy { font-size: 12px; color: var(--muted); }
+
+  /* ANIMATIONS */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 24px 60px; }
+    .stats-bar { flex-direction: column; }
+    .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+    .features-grid, .pricing-grid, .steps-grid { grid-template-columns: 1fr; }
+    .preview-section, .features-section, .how-section, .pricing-section, .cta-section { padding: 60px 24px; }
+    footer { flex-direction: column; gap: 20px; text-align: center; }
+    .preview-content { grid-template-columns: 1fr; }
+    .preview-sidebar { display: none; }
+    .metric-row { grid-template-columns: repeat(2, 1fr); }
+    .chart-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Unify<span>Tech</span></div>
+  <div class="nav-links">
+    <a href="#features">Özellikler</a>
+    <a href="#how">Nasıl Çalışır</a>
+    <a href="#pricing">Fiyatlar</a>
+    <a href="https://azure-cost-saas.vercel.app" target="_blank">Giriş Yap</a>
+  </div>
+  <a href="https://azure-cost-saas.vercel.app" target="_blank" class="nav-cta">Ücretsiz Başla →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Azure Cost Management Platform</div>
+
+  <h1>Azure maliyetlerinizi<br><span class="accent">akıllıca yönetin</span></h1>
+
+  <p>8 saatte bir otomatik tarama yapın, kullanılmayan kaynakları tespit edin ve Azure faturanızı ortalama %40 azaltın.</p>
+
+  <div class="hero-actions">
+    <a href="https://azure-cost-saas.vercel.app" target="_blank" class="btn-primary">
+      Ücretsiz Deneyin
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+    </a>
+    <a href="#features" class="btn-ghost">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Demo İzle
+    </a>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num"><span>%</span>40</div>
+      <div class="stat-label">Ortalama Tasarruf</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">8<span>s</span></div>
+      <div class="stat-label">Tarama Sıklığı</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">7/24</div>
+      <div class="stat-label">Otomatik İzleme</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">5<span>dk</span></div>
+      <div class="stat-label">Kurulum Süresi</div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD PREVIEW -->
+<section class="preview-section">
+  <div class="preview-wrapper reveal">
+    <div class="preview-bar">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+      <div class="preview-url">azure-cost-saas.vercel.app/dashboard</div>
+    </div>
+    <div class="preview-content">
+      <div class="preview-sidebar">
+        <div class="sidebar-logo">Unify<span>Tech</span><br><span style="font-size:10px;color:#5a5870;font-weight:400">Azure Cost</span></div>
+        <div class="sidebar-item active"><div class="sidebar-dot"></div>Dashboard</div>
+        <div class="sidebar-item"><div class="sidebar-dot"></div>Kaynaklar</div>
+        <div class="sidebar-item"><div class="sidebar-dot"></div>Öneriler</div>
+        <div class="sidebar-item"><div class="sidebar-dot"></div>Raporlar</div>
+        <div class="sidebar-item"><div class="sidebar-dot"></div>Ayarlar</div>
+      </div>
+      <div class="preview-main">
+        <div class="metric-row">
+          <div class="metric-card">
+            <div class="metric-label">Aylık Maliyet</div>
+            <div class="metric-value">$9,600</div>
+            <div class="metric-sub" style="color:#ff6b6b">↑ %12 geçen ay</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Tasarruf Fırsatı</div>
+            <div class="metric-value green">$1,970</div>
+            <div class="metric-sub">%21 tasarruf mümkün</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Aktif Kaynak</div>
+            <div class="metric-value">47</div>
+            <div class="metric-sub" style="color:#ffbd2e">5 dikkat gerektiriyor</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Ay Sonu Tahmini</div>
+            <div class="metric-value orange">$11,200</div>
+            <div class="metric-sub">Mevcut trendde</div>
+          </div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-card">
+            <div class="chart-title">Son 7 Günlük Maliyet Trendi</div>
+            <div class="mini-chart">
+              <div class="bar" style="height:62%;animation-delay:0.1s"></div>
+              <div class="bar" style="height:75%;animation-delay:0.15s"></div>
+              <div class="bar" style="height:55%;animation-delay:0.2s"></div>
+              <div class="bar highlight" style="height:82%;animation-delay:0.25s"></div>
+              <div class="bar" style="height:70%;animation-delay:0.3s"></div>
+              <div class="bar" style="height:45%;animation-delay:0.35s"></div>
+              <div class="bar" style="height:52%;animation-delay:0.4s"></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Kaynak Dağılımı</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden">
+                  <div style="width:44%;height:100%;background:#2461ff;border-radius:3px"></div>
+                </div>
+                <span style="font-size:11px;color:#7a788a;width:70px">VMs $4,200</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden">
+                  <div style="width:22%;height:100%;background:#00e5a0;border-radius:3px"></div>
+                </div>
+                <span style="font-size:11px;color:#7a788a;width:70px">SQL $2,100</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden">
+                  <div style="width:19%;height:100%;background:#8b5cf6;border-radius:3px"></div>
+                </div>
+                <span style="font-size:11px;color:#7a788a;width:70px">Storage $1,800</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden">
+                  <div style="width:9%;height:100%;background:#ff9d4e;border-radius:3px"></div>
+                </div>
+                <span style="font-size:11px;color:#7a788a;width:70px">App $900</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+  <div class="section-eyebrow reveal">Özellikler</div>
+  <h2 class="section-title reveal">Azure maliyetlerini kontrol altına alan her şey</h2>
+
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Otomatik Kaynak Tarama</div>
+      <p class="feature-desc">Azure subscription'ınızı 8 saatte bir otomatik olarak tarar. VM'ler, diskler, public IP'ler ve tüm kaynakları anlık olarak izler.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💡</div>
+      <div class="feature-title">Akıllı Optimizasyon Önerileri</div>
+      <p class="feature-desc">Boşta kalan VM'leri, bağlantısız diskleri ve kullanılmayan IP adreslerini tespit eder. Her öneri için tahmini aylık tasarruf miktarını gösterir.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Gelişmiş Maliyet Analizi</div>
+      <p class="feature-desc">Kaynak türüne göre maliyet dağılımı, aylık trend grafikleri ve ay sonu tahmini ile bütçenizi her zaman kontrol altında tutun.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📧</div>
+      <div class="feature-title">Otomatik E-posta Bildirimleri</div>
+      <p class="feature-desc">Her tarama sonrası IT adminlerine detaylı rapor e-postası gönderilir. Maliyet alarmları ve haftalık özetlerle hiçbir şeyi kaçırmayın.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <div class="feature-title">Microsoft SSO ile Güvenli Giriş</div>
+      <p class="feature-desc">Azure AD entegrasyonu sayesinde çalışanlarınız kendi Microsoft iş hesaplarıyla güvenli bir şekilde sisteme erişir.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏢</div>
+      <div class="feature-title">Multi-Tenant Mimari</div>
+      <p class="feature-desc">Her şirketin verileri tamamen izole edilmiş şekilde saklanır. Row Level Security ile güçlü veri güvenliği sağlanır.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="section-eyebrow reveal">Nasıl Çalışır</div>
+    <h2 class="section-title reveal">5 dakikada kurulumu tamamlayın</h2>
+
+    <div class="steps-grid reveal">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Hesap Oluşturun</div>
+        <p class="step-desc">Microsoft iş hesabınızla saniyeler içinde kayıt olun. Ek bilgi gerekmez.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Azure'u Bağlayın</div>
+        <p class="step-desc">Service Principal oluşturun ve Subscription ID, Client ID bilgilerini girin.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Taramayı Başlatın</div>
+        <p class="step-desc">İlk tarama dakikalar içinde tamamlanır. Tüm kaynaklar anında listelenir.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Tasarruf Edin</div>
+        <p class="step-desc">Önerileri inceleyin, uygulayın ve Azure faturanızı düşürmeye başlayın.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div style="text-align:center">
+    <div class="section-eyebrow reveal">Fiyatlandırma</div>
+    <h2 class="section-title reveal" style="max-width:100%;margin-left:auto;margin-right:auto;text-align:center">Şirketinizin ihtiyacına uygun plan</h2>
+  </div>
+
+  <div class="pricing-grid">
+    <div class="pricing-card reveal">
+      <div class="plan-name">Free</div>
+      <div class="plan-price"><sup>$</sup>0</div>
+      <div class="plan-period">sonsuza kadar ücretsiz</div>
+      <ul class="plan-features">
+        <li>100 kaynağa kadar</li>
+        <li>8 saatlik tarama</li>
+        <li>30 günlük veri saklama</li>
+        <li>E-posta bildirimleri</li>
+        <li>Temel dashboard</li>
+      </ul>
+      <a href="https://azure-cost-saas.vercel.app" target="_blank" class="plan-cta ghost">Ücretsiz Başla</a>
+    </div>
+
+    <div class="pricing-card popular reveal">
+      <div class="popular-badge">En Popüler</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price"><sup>$</sup>49</div>
+      <div class="plan-period">aylık · yıllık ödemede %20 indirim</div>
+      <ul class="plan-features">
+        <li>Sınırsız kaynak</li>
+        <li>1 saatlik tarama</li>
+        <li>90 günlük veri saklama</li>
+        <li>Öncelikli e-posta desteği</li>
+        <li>Gelişmiş raporlama</li>
+        <li>Slack & Teams bildirimleri</li>
+      </ul>
+      <a href="https://azure-cost-saas.vercel.app" target="_blank" class="plan-cta primary">Pro'ya Geç</a>
+    </div>
+
+    <div class="pricing-card reveal">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price" style="font-size:36px">Özel</div>
+      <div class="plan-period">ihtiyacınıza göre fiyatlandırma</div>
+      <ul class="plan-features">
+        <li>Birden fazla subscription</li>
+        <li>15 dakikalık tarama</li>
+        <li>Sınırsız veri saklama</li>
+        <li>Özel SLA garantisi</li>
+        <li>On-premise kurulum</li>
+        <li>7/24 teknik destek</li>
+      </ul>
+      <a href="mailto:info@unifytech.com.tr" class="plan-cta ghost">Teklif Alın</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2 class="reveal">Azure faturanızı düşürmeye<br>bugün başlayın</h2>
+  <p class="reveal">Kredi kartı gerekmez. 5 dakikada kurulum. İlk tarama ücretsiz.</p>
+  <a href="https://azure-cost-saas.vercel.app" target="_blank" class="btn-primary reveal" style="font-size:16px;padding:16px 40px">
+    Ücretsiz Hesap Oluştur
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Unify<span>Tech</span></div>
+  <div class="footer-links">
+    <a href="#features">Özellikler</a>
+    <a href="#pricing">Fiyatlar</a>
+    <a href="https://azure-cost-saas.vercel.app" target="_blank">Uygulamaya Gir</a>
+    <a href="mailto:info@unifytech.com.tr">İletişim</a>
+  </div>
+  <div class="footer-copy">© 2025 UnifyTech Bilgi Sistemleri</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
