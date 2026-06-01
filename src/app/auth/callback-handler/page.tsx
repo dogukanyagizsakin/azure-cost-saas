@@ -9,28 +9,49 @@ export default function CallbackHandler() {
 
   useEffect(() => {
     const handleAuth = async () => {
-      // Hash fragment'dan session al
-      const { data: { session }, error } = await supabase.auth.getSession()
-      console.log('Session check:', session?.user?.email, error?.message)
+      const { data: { session } } = await supabase.auth.getSession()
 
-      if (session) {
-        // Session var, dashboard'a git
-        window.location.href = '/dashboard'
+      if (!session) {
+        router.push('/auth/login')
         return
       }
 
-      // Session yoksa tekrar dene
-      const { data, error: refreshError } = await supabase.auth.refreshSession()
-      console.log('Refresh check:', data?.session?.user?.email, refreshError?.message)
+      // Kullanıcı users tablosunda var mı kontrol et
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', session.user.id)
+        .maybeSingle()
 
-      if (data?.session) {
-        window.location.href = '/dashboard'
-      } else {
-        window.location.href = '/auth/login'
+      // Yoksa tenant ve user oluştur
+      if (!existingUser) {
+        const email = session.user.email || ''
+        const fullName = session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.name ||
+          email.split('@')[0]
+        const companyDomain = email.split('@')[1]?.split('.')[0] || 'company'
+        const slug = companyDomain.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now()
+
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .insert({ name: companyDomain, slug })
+          .select()
+          .single()
+
+        if (tenant) {
+          await supabase.from('users').insert({
+            id: session.user.id,
+            tenant_id: tenant.id,
+            email,
+            full_name: fullName,
+            role: 'owner',
+          })
+        }
       }
+
+      window.location.href = '/dashboard'
     }
 
-    // Kısa bir bekleme ekle — Supabase hash'i parse etmesi için zaman tanı
     setTimeout(handleAuth, 500)
   }, [router])
 
