@@ -1,6 +1,8 @@
 'use client'
-import { toast } from 'sonner'
+
 import { useState } from 'react'
+import { toast } from 'sonner'
+import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar
@@ -58,34 +60,36 @@ const scanLogs = [
 
 export default function DashboardPage() {
   const [scanning, setScanning] = useState(false)
-  const [scanResult, setScanResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [loading] = useState(false)
 
   const totalMaliyet = 9600
   const tasarrufFirsati = 1970
   const aktifKaynak = 47
   const tahmin = 11200
 
-async function handleScan() {
-  setScanning(true)
-  const toastId = toast.loading('Azure kaynakları taranıyor...')
-  try {
-    const response = await fetch('/api/scan', { method: 'POST' })
-    const data = await response.json()
-    if (data.success) {
-      toast.success(`Tarama tamamlandı! ${data.resourcesScanned} kaynak, ${data.recommendationsFound} öneri bulundu.`, { id: toastId })
-    } else {
-      toast.error(data.error || 'Tarama başarısız', { id: toastId })
+  async function handleScan() {
+    setScanning(true)
+    const toastId = toast.loading('Azure kaynakları taranıyor...')
+    try {
+      const response = await fetch('/api/scan', { method: 'POST' })
+      const data = await response.json()
+      if (data.success) {
+        toast.success(`Tarama tamamlandı! ${data.resourcesScanned} kaynak, ${data.recommendationsFound} öneri bulundu.`, { id: toastId })
+      } else {
+        toast.error(data.error || 'Tarama başarısız', { id: toastId })
+      }
+    } catch {
+      toast.error('Tarama sırasında bir hata oluştu', { id: toastId })
     }
-  } catch {
-    toast.error('Tarama sırasında bir hata oluştu', { id: toastId })
+    setScanning(false)
   }
-  setScanning(false)
-}
+
+  if (loading) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <div className="p-6">
-
-      {/* Üst bar */}
       <div className="flex items-center justify-between mb-6">
         <p className="text-xs text-gray-500">
           Son tarama: <span className="text-gray-400">2 saat önce</span> · Sonraki tarama: <span className="text-gray-400">6 saat sonra</span>
@@ -105,21 +109,6 @@ async function handleScan() {
           </button>
         </div>
       </div>
-
-      {/* Tarama sonucu */}
-      {scanResult && (
-        <div className={`mb-6 px-4 py-3 rounded-xl text-sm flex items-center gap-2 ${
-          scanResult.success
-            ? 'bg-green-900/30 border border-green-800 text-green-400'
-            : 'bg-red-900/30 border border-red-800 text-red-400'
-        }`}>
-          {scanResult.success
-            ? <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-            : <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          }
-          {scanResult.message}
-        </div>
-      )}
 
       {/* Kaynak Durum Bar */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6 flex items-center gap-6">
@@ -318,7 +307,6 @@ async function handleScan() {
           </tbody>
         </table>
       </div>
-
     </div>
   )
 }
