@@ -1,3 +1,13 @@
+@import "tailwindcss";
+
+html {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
 :root {
   --bg-primary: #050508;
   --bg-secondary: #0d0d14;
@@ -16,29 +26,34 @@
   --border-color: rgba(0,0,0,0.08);
 }
 
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Light mode overrides */
+.light .bg-gray-950 { background-color: #f1f3f9 !important; }
+.light .bg-gray-900 { background-color: #ffffff !important; }
+.light .bg-gray-800 { background-color: #f3f4f6 !important; }
+.light .border-gray-800 { border-color: #e5e7eb !important; }
+.light .border-gray-700 { border-color: #d1d5db !important; }
+.light .text-white { color: #0f0f1a !important; }
+.light .text-gray-400 { color: #4b5563 !important; }
+.light .text-gray-500 { color: #6b7280 !important; }
+.light .text-gray-600 { color: #9ca3af !important; }
+.light .bg-gray-800\/30 { background-color: rgba(243,244,246,0.5) !important; }
+.light .bg-gray-800\/50 { background-color: rgba(243,244,246,0.8) !important; }
+.light .placeholder-gray-600::placeholder { color: #9ca3af !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2d2d3d; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3d3d4d; }
+.light ::-webkit-scrollbar-thumb { background: #d1d5db; }
+.light ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
