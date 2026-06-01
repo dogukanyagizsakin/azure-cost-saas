@@ -198,7 +198,7 @@ export default function DashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
               <XAxis dataKey="gun" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
-              <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '8px', fontSize: '12px' }} formatter={(v: number) => [`$${v}`, 'Maliyet']} />
+              <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '8px', fontSize: '12px' }} formatter={(v) => [`$${v}`, 'Maliyet']} />
               <Line type="monotone" dataKey="maliyet" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} activeDot={{ r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
               <Pie data={resourceDist} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={3} dataKey="value">
                 {resourceDist.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
-              <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '8px', fontSize: '12px' }} formatter={(v: number) => [`$${v}`, '']} />
+              <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '8px', fontSize: '12px' }} formatter={(v) => [`$${v}`, '']} />
             </PieChart>
           </ResponsiveContainer>
           <div className="space-y-1.5 mt-3">
@@ -238,7 +238,7 @@ export default function DashboardPage() {
             <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
             <XAxis dataKey="ay" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
-            <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '8px', fontSize: '12px' }} formatter={(v: number) => [`$${v}`, 'Maliyet']} />
+            <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '8px', fontSize: '12px' }} formatter={(v) => [`$${v}`, 'Maliyet']} />
             <Bar dataKey="maliyet" fill="#3b82f6" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
