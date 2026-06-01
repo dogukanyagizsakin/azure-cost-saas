@@ -9,51 +9,80 @@ export default function CallbackHandler() {
 
   useEffect(() => {
     const handleAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
 
-      if (!session) {
-        router.push('/auth/login')
-        return
-      }
-
-      // Kullanıcı users tablosunda var mı kontrol et
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', session.user.id)
-        .maybeSingle()
-
-      // Yoksa tenant ve user oluştur
-      if (!existingUser) {
-        const email = session.user.email || ''
-        const fullName = session.user.user_metadata?.full_name ||
-          session.user.user_metadata?.name ||
-          email.split('@')[0]
-        const companyDomain = email.split('@')[1]?.split('.')[0] || 'company'
-        const slug = companyDomain.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now()
-
-        const { data: tenant } = await supabase
-          .from('tenants')
-          .insert({ name: companyDomain, slug })
-          .select()
-          .single()
-
-        if (tenant) {
-          await supabase.from('users').insert({
-            id: session.user.id,
-            tenant_id: tenant.id,
-            email,
-            full_name: fullName,
-            role: 'owner',
-          })
+        if (!session) {
+          router.push('/auth/login')
+          return
         }
-      }
 
-      // Yeni kullanıcıyı onboarding'e, mevcut kullanıcıyı dashboard'a yönlendir
-window.location.href = existingUser ? '/dashboard' : '/onboarding'
+        const user = session.user
+        const email = user.email || ''
+        const fullName = user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          email.split('@')[0]
+
+        // Kullanıcı users tablosunda var mı kontrol et
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('id, tenant_id')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        if (!existingUser) {
+          // Yeni kullanıcı — tenant oluştur
+          const companyDomain = email.split('@')[1]?.split('.')[0] || 'company'
+          const slug = companyDomain.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now()
+
+          const { data: tenant, error: tenantError } = await supabase
+            .from('tenants')
+            .insert({
+              name: companyDomain,
+              slug,
+              is_active: true,
+              plan: 'free',
+            })
+            .select()
+            .single()
+
+          if (tenantError) {
+            console.error('Tenant oluşturma hatası:', tenantError)
+            window.location.href = '/dashboard'
+            return
+          }
+
+          if (tenant) {
+            const { error: userError } = await supabase
+              .from('users')
+              .insert({
+                id: user.id,
+                tenant_id: tenant.id,
+                email,
+                full_name: fullName,
+                role: 'owner',
+              })
+
+            if (userError) {
+              console.error('Kullanıcı oluşturma hatası:', userError)
+            }
+
+            // Yeni kullanıcıyı onboarding'e yönlendir
+            window.location.href = '/onboarding'
+            return
+          }
+        }
+
+        // Mevcut kullanıcı — dashboard'a git
+        window.location.href = '/dashboard'
+
+      } catch (err) {
+        console.error('Callback handler hatası:', err)
+        window.location.href = '/dashboard'
+      }
     }
 
-    setTimeout(handleAuth, 500)
+    setTimeout(handleAuth, 800)
   }, [router])
 
   return (
