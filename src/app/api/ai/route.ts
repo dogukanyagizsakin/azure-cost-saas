@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import Groq from 'groq-sdk'
 import { createClient } from '@supabase/supabase-js'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 export async function POST(request: Request) {
   try {
@@ -12,7 +12,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Admin client ile token doğrula
     const adminSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -31,7 +30,6 @@ export async function POST(request: Request) {
 
     if (!userData) return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 })
 
-    // Gerçek verileri çek
     const { data: resources } = await adminSupabase
       .from('resources')
       .select('name, resource_type, location, is_active')
@@ -78,22 +76,25 @@ ${resources?.slice(0, 10).map(r => `- ${r.name} (${r.resource_type?.split('/').p
 Açık öneriler:
 ${recommendations?.slice(0, 5).map(r => `- ${r.title}: $${r.estimated_monthly_saving.toFixed(0)}/ay tasarruf`).join('\n') || 'Öneri bulunamadı'}
 
-Kısa, net ve yardımcı cevaplar ver. Teknik terimleri Türkçe açıkla.`
+Kısa, net ve yardımcı cevaplar ver. Teknik terimleri Türkçe açıkla. Maliyet optimizasyonu önerileri sun.`
 
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: systemPrompt,
+    const chatHistory = history?.map((msg: any) => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.content,
+    })) || []
+
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...chatHistory,
+        { role: 'user', content: message },
+      ],
+      temperature: 0.7,
+      max_tokens: 1024,
     })
 
-    const chat = model.startChat({
-      history: history?.map((msg: any) => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }],
-      })) || [],
-    })
-
-    const result = await chat.sendMessage(message)
-    const response = result.response.text()
+    const response = completion.choices[0]?.message?.content || 'Cevap alınamadı'
 
     return NextResponse.json({ response })
   } catch (err: any) {
