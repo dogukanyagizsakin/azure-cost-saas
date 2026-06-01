@@ -28,6 +28,44 @@ export async function POST(request: Request) {
       .eq('id', userData.tenant_id)
       .single()
 
+    // Azure'dan gerçek subscription adını çek
+    let subscriptionName = tenant?.name || ''
+    if (
+      tenant?.azure_subscription_id &&
+      tenant?.azure_tenant_id &&
+      tenant?.azure_client_id &&
+      tenant?.azure_client_secret
+    ) {
+      try {
+        const tokenRes = await fetch(
+          `https://login.microsoftonline.com/${tenant.azure_tenant_id}/oauth2/v2.0/token`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              grant_type: 'client_credentials',
+              client_id: tenant.azure_client_id,
+              client_secret: tenant.azure_client_secret,
+              scope: 'https://management.azure.com/.default',
+            }),
+          }
+        )
+        if (tokenRes.ok) {
+          const tokenData = await tokenRes.json()
+          const subRes = await fetch(
+            `https://management.azure.com/subscriptions/${tenant.azure_subscription_id}?api-version=2022-12-01`,
+            { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
+          )
+          if (subRes.ok) {
+            const subData = await subRes.json()
+            subscriptionName = subData.displayName || tenant.name
+          }
+        }
+      } catch {
+        subscriptionName = tenant?.name || ''
+      }
+    }
+
     const { data: resources } = await adminSupabase
       .from('resources')
       .select('*, cost_snapshots(cost_usd)')
@@ -50,7 +88,8 @@ export async function POST(request: Request) {
     const totalCost = resources?.reduce((sum, r) =>
       sum + (r.cost_snapshots?.reduce((s: number, c: any) => s + Number(c.cost_usd), 0) || 0), 0) || 0
 
-    const totalSaving = recommendations?.reduce((sum, r) => sum + r.estimated_monthly_saving, 0) || 0
+    const totalSaving = recommendations?.reduce((sum, r) =>
+      sum + r.estimated_monthly_saving, 0) || 0
 
     // Cost Management destekleniyor mu kontrol et
     const hasCostData = resources?.some(r =>
@@ -71,7 +110,7 @@ export async function POST(request: Request) {
       resourceCount: resources?.length || 0,
       activeCount: resources?.filter(r => r.is_active).length || 0,
       recommendationCount: recommendations?.length || 0,
-      subscriptionName: tenant?.name || '',
+      subscriptionName,
       costSupported,
       lastScanTime,
       scanLogs: scanLogs || [],
