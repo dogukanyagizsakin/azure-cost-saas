@@ -10,23 +10,27 @@ export default function CallbackHandler() {
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        // Session'ın oturması için bekle
+        console.log('Callback handler started')
         await new Promise(r => setTimeout(r, 1000))
 
         const { data: { session } } = await supabase.auth.getSession()
 
         if (!session) {
-          console.log('No session, redirecting to login')
+          console.log('No session found')
           window.location.href = '/auth/login'
           return
         }
 
         console.log('Session found:', session.user.email)
+        console.log('Calling setup-user API with token...')
 
-        // Server-side API ile kullanıcı kaydını oluştur
+        // Access token'ı API'ye gönder
         const response = await fetch('/api/auth/setup-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accessToken: session.access_token,
+          }),
         })
 
         const data = await response.json()
@@ -34,15 +38,15 @@ export default function CallbackHandler() {
 
         if (data.error) {
           console.error('Setup user error:', data.error)
-          // Hata olsa bile dashboard'a gönder
           window.location.href = '/dashboard'
           return
         }
 
-        // Yeni kullanıcıyı onboarding'e, mevcutu dashboard'a yönlendir
         if (data.isNew) {
+          console.log('New user, redirecting to onboarding')
           window.location.href = '/onboarding'
         } else {
+          console.log('Existing user, redirecting to dashboard')
           window.location.href = '/dashboard'
         }
 

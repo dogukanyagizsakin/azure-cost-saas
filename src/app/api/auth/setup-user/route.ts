@@ -1,19 +1,27 @@
-import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { accessToken } = await request.json()
 
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!accessToken) {
+      return NextResponse.json({ error: 'No access token' }, { status: 401 })
+    }
 
-    // Admin client ile RLS bypass ederek kontrol et
+    // Admin client
     const adminSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
+
+    // Token ile kullanıcıyı doğrula
+    const { data: { user }, error: authError } = await adminSupabase.auth.getUser(accessToken)
+
+    if (authError || !user) {
+      console.error('Auth error:', authError)
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    }
 
     // Kullanıcı var mı kontrol et
     const { data: existingUser } = await adminSupabase
@@ -65,7 +73,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: userError.message }, { status: 500 })
     }
 
+    console.log('New user created:', email, 'tenant:', tenant.name)
     return NextResponse.json({ exists: false, isNew: true })
+
   } catch (err: any) {
     console.error('Setup user error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
