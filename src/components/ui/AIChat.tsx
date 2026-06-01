@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { supabase } from '@/lib/supabase'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -36,12 +37,16 @@ export function AIChat() {
     setLoading(true)
 
     try {
+      // Session'dan access token al
+      const { data: { session } } = await supabase.auth.getSession()
+
       const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: messageText,
           history: messages,
+          accessToken: session?.access_token,
         }),
       })
 

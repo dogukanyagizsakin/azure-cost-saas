@@ -1,18 +1,29 @@
-import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { createClient } from '@supabase/supabase-js'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { message, history, accessToken } = await request.json()
 
-    const { message, history } = await request.json()
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    const { data: userData } = await supabase
+    // Admin client ile token doğrula
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: { user }, error: authError } = await adminSupabase.auth.getUser(accessToken)
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: userData } = await adminSupabase
       .from('users')
       .select('tenant_id')
       .eq('id', user.id)
@@ -21,27 +32,27 @@ export async function POST(request: Request) {
     if (!userData) return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 })
 
     // Gerçek verileri çek
-    const { data: resources } = await supabase
+    const { data: resources } = await adminSupabase
       .from('resources')
       .select('name, resource_type, location, is_active')
       .eq('tenant_id', userData.tenant_id)
       .limit(50)
 
-    const { data: recommendations } = await supabase
+    const { data: recommendations } = await adminSupabase
       .from('recommendations')
       .select('title, type, estimated_monthly_saving, status')
       .eq('tenant_id', userData.tenant_id)
       .eq('status', 'open')
       .limit(20)
 
-    const { data: scanLogs } = await supabase
+    const { data: scanLogs } = await adminSupabase
       .from('scan_logs')
       .select('status, resources_scanned, recommendations_found, total_cost_usd, started_at')
       .eq('tenant_id', userData.tenant_id)
       .order('started_at', { ascending: false })
       .limit(5)
 
-    const { data: tenant } = await supabase
+    const { data: tenant } = await adminSupabase
       .from('tenants')
       .select('name, monthly_budget')
       .eq('id', userData.tenant_id)
@@ -67,7 +78,7 @@ ${resources?.slice(0, 10).map(r => `- ${r.name} (${r.resource_type?.split('/').p
 Açık öneriler:
 ${recommendations?.slice(0, 5).map(r => `- ${r.title}: $${r.estimated_monthly_saving.toFixed(0)}/ay tasarruf`).join('\n') || 'Öneri bulunamadı'}
 
-Kısa, net ve yardımcı cevaplar ver. Teknik terimleri Türkçe açıkla. Maliyet optimizasyonu önerileri sun.`
+Kısa, net ve yardımcı cevaplar ver. Teknik terimleri Türkçe açıkla.`
 
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.0-flash',
