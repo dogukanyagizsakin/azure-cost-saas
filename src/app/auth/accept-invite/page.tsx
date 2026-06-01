@@ -106,4 +106,35 @@ function AcceptInviteContent() {
           <span className="text-white font-medium">{invitation?.tenants?.name}</span> şirketinin
         </p>
         <p className="text-gray-400 text-sm mb-6">
-          Azure Cost platformuna <span className="text-blue-400 font-medium">{i
+          Azure Cost platformuna <span className="text-blue-400 font-medium">{invitation?.role === 'viewer' ? 'Görüntüleyici' : 'Admin'}</span> olarak davet edildiniz.
+        </p>
+        <button
+          onClick={handleAccept}
+          disabled={status === 'accepting'}
+          className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-50 text-gray-900 font-medium rounded-xl py-3 transition-colors"
+        >
+          <svg width="18" height="18" viewBox="0 0 21 21" fill="none">
+            <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+            <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+            <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+            <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+          </svg>
+          {status === 'accepting' ? 'İşleniyor...' : 'Microsoft ile Kabul Et'}
+        </button>
+        <p className="text-xs text-gray-600 mt-4">Bu davet 7 gün geçerlidir</p>
+      </div>
+    </div>
+  )
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <AcceptInviteContent />
+    </Suspense>
+  )
+}
