@@ -120,22 +120,27 @@ export default function DashboardPage() {
     setTimeout(() => setProgressWidth(100), 300)
   }, [])
 
-  async function handleScan() {
-    setScanning(true)
-    const toastId = toast.loading('Azure kaynakları taranıyor...')
-    try {
-      const response = await fetch('/api/scan', { method: 'POST' })
-      const data = await response.json()
-      if (data.success) {
-        toast.success(`Tarama tamamlandı! ${data.resourcesScanned} kaynak, ${data.recommendationsFound} öneri bulundu.`, { id: toastId })
-      } else {
-        toast.error(data.error || 'Tarama başarısız', { id: toastId })
-      }
-    } catch {
-      toast.error('Tarama sırasında bir hata oluştu', { id: toastId })
+async function handleScan() {
+  setScanning(true)
+  const toastId = toast.loading('Azure kaynakları taranıyor...')
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const response = await fetch('/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: session?.access_token }),
+    })
+    const data = await response.json()
+    if (data.success) {
+      toast.success(`Tarama tamamlandı! ${data.resourcesScanned} kaynak, ${data.recommendationsFound} öneri bulundu.`, { id: toastId })
+    } else {
+      toast.error(data.error || 'Tarama başarısız', { id: toastId })
     }
-    setScanning(false)
+  } catch {
+    toast.error('Tarama sırasında bir hata oluştu', { id: toastId })
   }
+  setScanning(false)
+}
 
   if (loading) return <DashboardSkeleton />
 

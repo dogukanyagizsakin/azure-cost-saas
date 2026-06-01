@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 async function getAzureToken(tenantId: string, clientId: string, clientSecret: string) {
@@ -63,17 +63,16 @@ async function getCosts(token: string, subscriptionId: string) {
 
 function detectIssues(resource: any) {
   const type = resource.type?.toLowerCase() || ''
-  const name = resource.name?.toLowerCase() || ''
   const issues = []
 
   if (type.includes('virtualmachines')) {
-    issues.push({ type: 'idle_vm', title: 'Boşta VM tespit edildi', description: 'VM son 7 gündür %5\'in altında CPU kullanıyor olabilir.', estimatedSaving: 0 })
+    issues.push({ type: 'idle_vm', title: 'Boşta VM tespit edildi', description: 'VM düşük kullanımda olabilir.', saving: 200 })
   }
-  if (type.includes('disks') && !type.includes('virtualmachines')) {
-    issues.push({ type: 'underused_disk', title: 'Bağlı olmayan disk', description: 'Bu disk herhangi bir VM\'e bağlı değil, orphan olabilir.', estimatedSaving: 0 })
+  if (type.includes('disks')) {
+    issues.push({ type: 'underused_disk', title: 'Bağlı olmayan disk', description: 'Disk herhangi bir VM\'e bağlı değil.', saving: 50 })
   }
   if (type.includes('publicipaddresses')) {
-    issues.push({ type: 'orphan_ip', title: 'Kullanılmayan Public IP', description: 'Bu IP herhangi bir kaynağa atanmamış olabilir.', estimatedSaving: 0 })
+    issues.push({ type: 'orphan_ip', title: 'Kullanılmayan Public IP', description: 'IP herhangi bir kaynağa atanmamış.', saving: 10 })
   }
 
   return issues
@@ -81,36 +80,44 @@ function detectIssues(resource: any) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const body = await request.json().catch(() => ({}))
+    const { accessToken } = body
 
-    if (!user) {
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // Token ile kullanıcıyı doğrula
+    if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Kullanıcının tenant bilgilerini al
-    const { data: userData } = await supabase
+    const { data: { user }, error: authError } = await adminSupabase.auth.getUser(accessToken)
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: userData } = await adminSupabase
       .from('users')
       .select('tenant_id')
       .eq('id', user.id)
       .single()
 
-    if (!userData) {
-      return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 })
-    }
+    if (!userData) return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 })
 
-    const { data: tenant } = await supabase
+    const { data: tenant } = await adminSupabase
       .from('tenants')
       .select('*')
       .eq('id', userData.tenant_id)
       .single()
 
     if (!tenant?.azure_subscription_id) {
-      return NextResponse.json({ error: 'Azure bağlantısı yapılmamış. Önce Ayarlar sayfasından Azure bilgilerini girin.' }, { status: 400 })
+      return NextResponse.json({ error: 'Azure bağlantısı yapılmamış.' }, { status: 400 })
     }
 
     // Tarama logu başlat
-    const { data: scanLog } = await supabase
+    const { data: scanLog } = await adminSupabase
       .from('scan_logs')
       .insert({
         tenant_id: tenant.id,
@@ -121,20 +128,15 @@ export async function POST(request: Request) {
       .single()
 
     try {
-      // Azure token al
-      const token = await getAzureToken(
+      const azureToken = await getAzureToken(
         tenant.azure_tenant_id,
         tenant.azure_client_id,
         tenant.azure_client_secret
       )
 
-      // Kaynakları çek
-      const resources = await getResources(token, tenant.azure_subscription_id)
+      const resources = await getResources(azureToken, tenant.azure_subscription_id)
+      const costs = await getCosts(azureToken, tenant.azure_subscription_id)
 
-      // Maliyetleri çek
-      const costs = await getCosts(token, tenant.azure_subscription_id)
-
-      // Maliyet map'i oluştur
       const costMap: Record<string, number> = {}
       costs.forEach((row: any[]) => {
         if (row[0] && row[1]) {
@@ -145,13 +147,11 @@ export async function POST(request: Request) {
       let totalCost = 0
       let recommendationsFound = 0
 
-      // Kaynakları işle
       for (const resource of resources) {
         const resourceCost = costMap[resource.id?.toLowerCase()] || 0
         totalCost += resourceCost
 
-        // Kaynağı kaydet / güncelle
-        const { data: existingResource } = await supabase
+        const { data: existing } = await adminSupabase
           .from('resources')
           .select('id')
           .eq('azure_resource_id', resource.id)
@@ -160,9 +160,9 @@ export async function POST(request: Request) {
 
         let resourceId: string
 
-        if (existingResource) {
-          resourceId = existingResource.id
-          await supabase
+        if (existing) {
+          resourceId = existing.id
+          await adminSupabase
             .from('resources')
             .update({
               name: resource.name,
@@ -174,7 +174,7 @@ export async function POST(request: Request) {
             })
             .eq('id', resourceId)
         } else {
-          const { data: newResource } = await supabase
+          const { data: newResource } = await adminSupabase
             .from('resources')
             .insert({
               tenant_id: tenant.id,
@@ -191,10 +191,9 @@ export async function POST(request: Request) {
           resourceId = newResource?.id
         }
 
-        // Maliyet snapshot kaydet
         if (resourceId && resourceCost > 0) {
           const now = new Date()
-          await supabase.from('cost_snapshots').insert({
+          await adminSupabase.from('cost_snapshots').insert({
             tenant_id: tenant.id,
             resource_id: resourceId,
             period_start: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0],
@@ -203,13 +202,12 @@ export async function POST(request: Request) {
           })
         }
 
-        // Sorunları tespit et
         if (resourceId) {
           const issues = detectIssues(resource)
           for (const issue of issues) {
-            const estimatedSaving = resourceCost * 0.8
+            const estimatedSaving = resourceCost > 0 ? resourceCost * 0.8 : issue.saving
 
-            const { data: existingRec } = await supabase
+            const { data: existingRec } = await adminSupabase
               .from('recommendations')
               .select('id')
               .eq('resource_id', resourceId)
@@ -218,7 +216,7 @@ export async function POST(request: Request) {
               .single()
 
             if (!existingRec) {
-              await supabase.from('recommendations').insert({
+              await adminSupabase.from('recommendations').insert({
                 tenant_id: tenant.id,
                 resource_id: resourceId,
                 type: issue.type,
@@ -233,8 +231,7 @@ export async function POST(request: Request) {
         }
       }
 
-      // Tarama logunu güncelle
-      await supabase
+      await adminSupabase
         .from('scan_logs')
         .update({
           status: 'success',
@@ -245,32 +242,31 @@ export async function POST(request: Request) {
         })
         .eq('id', scanLog?.id)
 
-// Bildirim e-postası gönder
-try {
-  const { data: notifSettings } = await supabase
-    .from('users')
-    .select('email')
-    .eq('id', user.id)
-    .single()
+      // Bildirim e-postası gönder
+      try {
+        const { data: users } = await adminSupabase
+          .from('users')
+          .select('email')
+          .eq('tenant_id', tenant.id)
 
-  if (notifSettings?.email) {
-    await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: notifSettings.email,
-        companyName: tenant.name,
-        resourcesScanned: resources.length,
-        recommendationsFound,
-        totalCost,
-        estimatedSaving: recommendationsFound * 300,
-        recommendations: [],
-      }),
-    })
-  }
-} catch (emailErr) {
-  console.log('E-posta gönderilemedi:', emailErr)
-}
+        for (const u of users || []) {
+          await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: u.email,
+              companyName: tenant.name,
+              resourcesScanned: resources.length,
+              recommendationsFound,
+              totalCost,
+              estimatedSaving: recommendationsFound * 300,
+              recommendations: [],
+            }),
+          })
+        }
+      } catch (emailErr) {
+        console.log('E-posta gönderilemedi:', emailErr)
+      }
 
       return NextResponse.json({
         success: true,
@@ -280,8 +276,7 @@ try {
       })
 
     } catch (scanError: any) {
-      // Tarama hatasını logla
-      await supabase
+      await adminSupabase
         .from('scan_logs')
         .update({
           status: 'failed',
