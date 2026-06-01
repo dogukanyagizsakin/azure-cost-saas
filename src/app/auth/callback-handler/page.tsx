@@ -49,7 +49,8 @@ export default function CallbackHandler() {
         }
       }
 
-      window.location.href = '/dashboard'
+      // Yeni kullanıcıyı onboarding'e, mevcut kullanıcıyı dashboard'a yönlendir
+window.location.href = existingUser ? '/dashboard' : '/onboarding'
     }
 
     setTimeout(handleAuth, 500)
