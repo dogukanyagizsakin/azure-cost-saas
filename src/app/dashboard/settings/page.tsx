@@ -4,6 +4,149 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
+function BudgetTab() {
+  const [monthlyBudget, setMonthlyBudget] = useState('')
+  const [alertThreshold, setAlertThreshold] = useState('80')
+  const [saving, setSaving] = useState(false)
+  const [currentSpend] = useState(9600)
+
+  useEffect(() => {
+    fetch('/api/budget')
+      .then(r => r.json())
+      .then(d => {
+        if (d.monthlyBudget) setMonthlyBudget(d.monthlyBudget.toString())
+        if (d.alertThreshold) setAlertThreshold(d.alertThreshold.toString())
+      })
+  }, [])
+
+  async function handleSave() {
+    setSaving(true)
+    const res = await fetch('/api/budget', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        monthlyBudget: monthlyBudget ? parseFloat(monthlyBudget) : null,
+        alertThreshold: parseInt(alertThreshold),
+      }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      toast.success('Bütçe ayarları kaydedildi!')
+    } else {
+      toast.error('Hata: ' + data.error)
+    }
+    setSaving(false)
+  }
+
+  const budgetNum = parseFloat(monthlyBudget) || 0
+  const percentage = budgetNum > 0 ? Math.round((currentSpend / budgetNum) * 100) : 0
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+        <h3 className="text-sm font-semibold text-white">Aylık Bütçe Limiti</h3>
+
+        <div>
+          <label className="block text-xs text-gray-400 mb-1.5">Aylık Bütçe ($)</label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+            <input
+              type="number"
+              value={monthlyBudget}
+              onChange={e => setMonthlyBudget(e.target.value)}
+              placeholder="10000"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-8 pr-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
+            />
+          </div>
+          <p className="text-xs text-gray-600 mt-1">Aylık Azure harcama limitinizi belirleyin</p>
+        </div>
+
+        <div>
+          <label className="block text-xs text-gray-400 mb-1.5">
+            Uyarı Eşiği — %{alertThreshold}
+          </label>
+          <input
+            type="range"
+            min="50"
+            max="95"
+            step="5"
+            value={alertThreshold}
+            onChange={e => setAlertThreshold(e.target.value)}
+            className="w-full accent-blue-500"
+          />
+          <div className="flex justify-between text-xs text-gray-600 mt-1">
+            <span>%50</span>
+            <span>Bütçenin %{alertThreshold}&apos;ine ulaşınca uyar</span>
+            <span>%95</span>
+          </div>
+        </div>
+
+        {budgetNum > 0 && (
+          <div className="bg-gray-800 rounded-xl p-4">
+            <p className="text-xs text-gray-500 mb-3">Mevcut Durum Önizlemesi</p>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-400">Mevcut harcama</span>
+              <span className="text-white font-medium">${currentSpend.toLocaleString()} / ${budgetNum.toLocaleString()}</span>
+            </div>
+            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  percentage >= 100 ? 'bg-red-500' :
+                  percentage >= parseInt(alertThreshold) ? 'bg-yellow-500' :
+                  'bg-green-500'
+                }`}
+                style={{ width: `${Math.min(percentage, 100)}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-1.5">
+              <span className="text-xs text-gray-500">%{percentage} kullanıldı</span>
+              <span className={`text-xs font-medium ${
+                percentage >= 100 ? 'text-red-400' :
+                percentage >= parseInt(alertThreshold) ? 'text-yellow-400' :
+                'text-green-400'
+              }`}>
+                {percentage >= 100 ? '⚠ Bütçe aşıldı!' :
+                 percentage >= parseInt(alertThreshold) ? '⚠ Uyarı eşiğine ulaşıldı' :
+                 '✓ Bütçe dahilinde'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+        >
+          {saving && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+          Kaydet
+        </button>
+      </div>
+
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <h3 className="text-sm font-semibold text-white mb-4">Bütçe Uyarıları</h3>
+        <div className="space-y-3">
+          {[
+            { label: 'Eşik aşıldığında e-posta gönder', desc: 'Bütçenin belirlenen yüzdesine ulaşınca bildir', active: true },
+            { label: 'Bütçe aşıldığında acil uyarı', desc: 'Limit aşıldığında anında bildir', active: true },
+            { label: 'Günlük harcama özeti', desc: 'Her gün mevcut harcamayı raporla', active: false },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center justify-between py-3 border-b border-gray-800 last:border-0">
+              <div>
+                <p className="text-sm text-white">{item.label}</p>
+                <p className="text-xs text-gray-500">{item.desc}</p>
+              </div>
+              <div className={`relative w-10 h-5 rounded-full ${item.active ? 'bg-blue-600' : 'bg-gray-700'}`}>
+                <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${item.active ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function TeamTab() {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('admin')
@@ -142,7 +285,7 @@ function TeamTab() {
 }
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'azure' | 'notifications' | 'account' | 'team'>('azure')
+  const [activeTab, setActiveTab] = useState<'azure' | 'notifications' | 'budget' | 'team' | 'account'>('azure')
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -303,10 +446,11 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab Bar */}
-      <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 mb-6 w-fit">
+      <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 mb-6 w-fit flex-wrap">
         {[
           { key: 'azure', label: 'Azure Bağlantısı' },
           { key: 'notifications', label: 'Bildirimler' },
+          { key: 'budget', label: 'Bütçe' },
           { key: 'team', label: 'Takım' },
           { key: 'account', label: 'Hesap' },
         ].map(tab => (
@@ -475,6 +619,9 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* Bütçe */}
+      {activeTab === 'budget' && <BudgetTab />}
+
       {/* Takım */}
       {activeTab === 'team' && <TeamTab />}
 
@@ -505,7 +652,7 @@ export default function SettingsPage() {
             <h3 className="text-sm font-semibold text-white mb-2">Pro Plana Geç</h3>
             <p className="text-xs text-gray-500 mb-4">Sınırsız kaynak, 1 saatlik tarama ve 90 günlük veri saklama</p>
             <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-              Pro'ya Yükselt — $49/ay
+              Pro&apos;ya Yükselt — $49/ay
             </button>
           </div>
           <div className="bg-red-900/10 border border-red-900/30 rounded-xl p-6">

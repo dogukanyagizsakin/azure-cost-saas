@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import {
@@ -61,11 +61,22 @@ const scanLogs = [
 export default function DashboardPage() {
   const [scanning, setScanning] = useState(false)
   const [loading] = useState(false)
+  const [budget, setBudget] = useState<number | null>(null)
+  const [alertThreshold, setAlertThreshold] = useState(80)
 
   const totalMaliyet = 9600
   const tasarrufFirsati = 1970
   const aktifKaynak = 47
   const tahmin = 11200
+
+  useEffect(() => {
+    fetch('/api/budget')
+      .then(r => r.json())
+      .then(d => {
+        setBudget(d.monthlyBudget)
+        setAlertThreshold(d.alertThreshold)
+      })
+  }, [])
 
   async function handleScan() {
     setScanning(true)
@@ -90,6 +101,8 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6">
+
+      {/* Üst bar */}
       <div className="flex items-center justify-between mb-6">
         <p className="text-xs text-gray-500">
           Son tarama: <span className="text-gray-400">2 saat önce</span> · Sonraki tarama: <span className="text-gray-400">6 saat sonra</span>
@@ -109,6 +122,49 @@ export default function DashboardPage() {
           </button>
         </div>
       </div>
+
+      {/* Bütçe Widget */}
+      {budget && (
+        <div className={`rounded-xl p-4 mb-6 border ${
+          totalMaliyet >= budget
+            ? 'bg-red-900/20 border-red-800/50'
+            : totalMaliyet >= budget * (alertThreshold / 100)
+            ? 'bg-yellow-900/20 border-yellow-800/50'
+            : 'bg-green-900/20 border-green-800/50'
+        }`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                totalMaliyet >= budget ? 'bg-red-500' :
+                totalMaliyet >= budget * (alertThreshold / 100) ? 'bg-yellow-500' :
+                'bg-green-500'
+              }`} />
+              <span className="text-sm font-medium text-white">Aylık Bütçe</span>
+              {totalMaliyet >= budget && (
+                <span className="text-xs bg-red-900/50 text-red-400 px-2 py-0.5 rounded-full">Aşıldı!</span>
+              )}
+              {totalMaliyet >= budget * (alertThreshold / 100) && totalMaliyet < budget && (
+                <span className="text-xs bg-yellow-900/50 text-yellow-400 px-2 py-0.5 rounded-full">%{alertThreshold} eşiği aşıldı</span>
+              )}
+            </div>
+            <span className="text-sm text-gray-400">${totalMaliyet.toLocaleString()} / ${budget.toLocaleString()}</span>
+          </div>
+          <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                totalMaliyet >= budget ? 'bg-red-500' :
+                totalMaliyet >= budget * (alertThreshold / 100) ? 'bg-yellow-500' :
+                'bg-green-500'
+              }`}
+              style={{ width: `${Math.min((totalMaliyet / budget) * 100, 100)}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1.5">
+            <span className="text-xs text-gray-500">%{Math.round((totalMaliyet / budget) * 100)} kullanıldı</span>
+            <span className="text-xs text-gray-500">${(budget - totalMaliyet).toLocaleString()} kaldı</span>
+          </div>
+        </div>
+      )}
 
       {/* Kaynak Durum Bar */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6 flex items-center gap-6">
@@ -307,6 +363,7 @@ export default function DashboardPage() {
           </tbody>
         </table>
       </div>
+
     </div>
   )
 }
