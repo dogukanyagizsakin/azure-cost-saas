@@ -200,8 +200,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 <div>
                   <div className="flex items-center gap-0.5">
-                    <span className="text-white font-bold text-base tracking-tight">Unify</span>
-                    <span className="text-blue-400 font-light text-base tracking-tight">Tech</span>
+                    <span className="text-white font-bold text-base tracking-tight">UnifyTech</span>
                   </div>
                   <p className="text-gray-500 text-xs font-medium tracking-widest uppercase">Cost Pilot</p>
                 </div>
