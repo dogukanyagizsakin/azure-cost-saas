@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     // Admin'e bildirim emaili gönder
     await resend.emails.send({
       from: 'CostPilot <onboarding@resend.dev>',
-      to: 'dogukan.yagiz@unifytech.com.tr',
+      to: 'dogukan.yagiz@gmail.com',
       subject: `🔑 Şifre Sıfırlama Talebi — ${user.name || email}`,
       html: `
         <!DOCTYPE html>
