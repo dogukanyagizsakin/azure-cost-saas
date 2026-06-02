@@ -60,14 +60,15 @@ export async function POST(request: Request) {
     const userId = authData.user.id
 
     // Tenant oluştur
-    const { data: tenant, error: tenantError } = await adminSupabase
-      .from('tenants')
-      .insert({
-        name: company,
-        is_active: true,
-      })
-      .select()
-      .single()
+const { data: tenant, error: tenantError } = await adminSupabase
+  .from('tenants')
+  .insert({
+    name: company,
+    slug: company.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-') + '-' + Date.now(),
+    is_active: true,
+  })
+  .select()
+  .single()
 
     if (tenantError) {
       // Auth user'ı geri al
