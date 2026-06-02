@@ -162,20 +162,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-4 border-b border-gray-800">
           <div className="flex items-center justify-between">
             {sidebarOpen ? (
-              <Link href="/dashboard" className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div>
-                  <div>
-                    <span className="text-white font-bold text-sm">Unify</span>
-                    <span className="text-blue-400 font-light text-sm">Tech</span>
-                  </div>
-                  <p className="text-gray-600 text-xs">Azure Cost</p>
-                </div>
-              </Link>
+              <Link href="/dashboard" className="flex items-center">
+  <img
+    src="/costpilot-logo.jpg"
+    alt="UnifyTech CostPilot"
+    style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+  />
+</Link>
             ) : (
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mx-auto">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
