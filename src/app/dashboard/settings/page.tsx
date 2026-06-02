@@ -346,25 +346,29 @@ export default function SettingsPage() {
     loadSettings()
   }, [])
 
-  async function handleAzureSave() {
-    setSaving(true)
-    try {
-      const response = await fetch('/api/azure/save-credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(azureForm),
-      })
-      const data = await response.json()
-      if (data.success) {
-        toast.success('Azure bilgileri kaydedildi!')
-      } else {
-        toast.error('Hata: ' + data.error)
-      }
-    } catch {
-      toast.error('Kaydetme sırasında hata oluştu')
+async function handleAzureSave() {
+  setSaving(true)
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const response = await fetch('/api/azure/save-credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...azureForm,
+        accessToken: session?.access_token,
+      }),
+    })
+    const data = await response.json()
+    if (data.success) {
+      toast.success('Azure bilgileri kaydedildi!')
+    } else {
+      toast.error('Hata: ' + data.error)
     }
-    setSaving(false)
+  } catch {
+    toast.error('Kaydetme sırasında hata oluştu')
   }
+  setSaving(false)
+}
 
   async function handleTestConnection() {
     setTesting(true)
