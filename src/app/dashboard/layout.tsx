@@ -115,6 +115,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [stats, setStats] = useState({ resources: 0, recommendations: 0 })
   const [scanning, setScanning] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [announcements, setAnnouncements] = useState<any[]>([])
 
   useEffect(() => {
     async function loadUser() {
@@ -131,19 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       if (!userData) return
 
-      // Duyuruları yükle
-const [announcements, setAnnouncements] = useState<any[]>([])
 
-useEffect(() => {
-  async function loadAnnouncements() {
-    const res = await fetch('/api/announcements')
-    if (res.ok) {
-      const data = await res.json()
-      setAnnouncements(data.announcements || [])
-    }
-  }
-  loadAnnouncements()
-}, [])
 
       const { data: tenant } = await supabase
         .from('tenants')
@@ -171,6 +160,22 @@ useEffect(() => {
     }
     loadUser()
   }, [router])
+  useEffect(() => {
+  async function loadAnnouncements() {
+    try {
+      const res = await fetch('/api/announcements')
+
+      if (res.ok) {
+        const data = await res.json()
+        setAnnouncements(data.announcements || [])
+      }
+    } catch (error) {
+      console.error('Announcement load error:', error)
+    }
+  }
+
+  loadAnnouncements()
+}, [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
