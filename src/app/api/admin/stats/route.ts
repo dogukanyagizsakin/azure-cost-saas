@@ -53,7 +53,7 @@ export async function GET(request: Request) {
       id: t.id,
       name: t.name,
       email: t.users?.[0]?.email || '-',
-      role: t.users?.[0]?.role || 'admin',
+      is_active: t.is_active ?? true,
       azure_connected: !!t.azure_subscription_id,
       azure_subscription_id: t.azure_subscription_id,
       monthly_budget: t.monthly_budget,
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     stats: {
       totalCustomers: customers.length,
-      activeCustomers: customers.filter(c => c.azure_connected).length,
+      activeCustomers: customers.filter(c => c.is_active).length,
       totalResources: resources?.length || 0,
       totalRecommendations: recommendations?.filter(r => r.status === 'open').length || 0,
     },

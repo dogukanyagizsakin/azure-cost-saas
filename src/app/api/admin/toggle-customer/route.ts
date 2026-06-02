@@ -27,12 +27,23 @@ export async function POST(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Pasif etmek için azure_subscription_id'yi temizle
-    if (!isActive) {
-      await adminSupabase
-        .from('tenants')
-        .update({ azure_subscription_id: null })
-        .eq('id', tenantId)
+    // Tenant'ı aktif/pasif et
+    await adminSupabase
+      .from('tenants')
+      .update({ is_active: isActive })
+      .eq('id', tenantId)
+
+    // Kullanıcıları bul
+    const { data: users } = await adminSupabase
+      .from('users')
+      .select('id')
+      .eq('tenant_id', tenantId)
+
+    // Her kullanıcının auth durumunu güncelle
+    for (const user of users || []) {
+      await adminSupabase.auth.admin.updateUserById(user.id, {
+        ban_duration: isActive ? 'none' : '876600h', // ~100 yıl ban
+      })
     }
 
     return NextResponse.json({ success: true })

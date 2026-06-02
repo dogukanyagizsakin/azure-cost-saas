@@ -50,30 +50,47 @@ export default function LoginPage() {
   }
 
   async function handleEmailLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setEmailLoading(true)
-    setError('')
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailForm.email,
-        password: emailForm.password,
-      })
-      if (error) {
+  e.preventDefault()
+  setEmailLoading(true)
+  setError('')
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: emailForm.email,
+      password: emailForm.password,
+    })
+
+    if (error) {
+      if (error.message.includes('banned')) {
+        setError('Hesabınız pasif edilmiştir. Lütfen yöneticinizle iletişime geçin.')
+      } else {
         setError('Email veya şifre hatalı.')
-      } else if (data.session) {
-        // Setup user
-        const res = await fetch('/api/auth/setup-user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken: data.session.access_token }),
-        })
-        window.location.href = '/dashboard'
       }
-    } catch {
-      setError('Giriş yapılırken hata oluştu.')
+      setEmailLoading(false)
+      return
     }
-    setEmailLoading(false)
+
+    if (data.session) {
+      const res = await fetch('/api/auth/setup-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: data.session.access_token }),
+      })
+      const setupData = await res.json()
+
+      if (res.status === 403) {
+        await supabase.auth.signOut()
+        setError(setupData.error || 'Hesabınız pasif edilmiştir.')
+        setEmailLoading(false)
+        return
+      }
+
+      window.location.href = '/dashboard'
+    }
+  } catch {
+    setError('Giriş yapılırken hata oluştu.')
   }
+  setEmailLoading(false)
+}
 
   async function handleAdminLogin(e: React.FormEvent) {
     e.preventDefault()

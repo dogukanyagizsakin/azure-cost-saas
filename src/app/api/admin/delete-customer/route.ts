@@ -27,24 +27,26 @@ export async function POST(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Kullanıcıların auth hesaplarını sil
+    // Kullanıcıları bul
     const { data: users } = await adminSupabase
       .from('users')
       .select('id')
       .eq('tenant_id', tenantId)
 
-    for (const user of users || []) {
-      await adminSupabase.auth.admin.deleteUser(user.id)
-    }
-
-    // Cascade ile tüm veriler silinecek
+    // Tüm verileri sil (sıralı)
     await adminSupabase.from('recommendations').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('cost_snapshots').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('resources').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('scan_logs').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('notification_logs').delete().eq('tenant_id', tenantId)
+    await adminSupabase.from('invitations').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('users').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('tenants').delete().eq('id', tenantId)
+
+    // Auth kullanıcılarını sil
+    for (const user of users || []) {
+      await adminSupabase.auth.admin.deleteUser(user.id)
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
