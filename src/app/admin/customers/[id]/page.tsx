@@ -114,6 +114,14 @@ export default function CustomerDetailPage() {
             </div>
             <span className="text-sm font-medium">Müşteriler</span>
           </Link>
+          <Link href="/admin/health" className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/70 transition-all">
+            <div className="p-1.5 rounded-lg bg-green-500/10 text-green-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <span className="text-sm font-medium">Sistem Sağlığı</span>
+          </Link>
         </nav>
 
         <div className="p-3 border-t border-gray-800">
@@ -139,14 +147,10 @@ export default function CustomerDetailPage() {
               </svg>
             </button>
             <h1 className="text-sm font-semibold text-white">{tenant?.name}</h1>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${
-              tenant?.is_active ? 'bg-green-900/50 text-green-400' : 'bg-gray-800 text-gray-500'
-            }`}>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${tenant?.is_active ? 'bg-green-900/50 text-green-400' : 'bg-gray-800 text-gray-500'}`}>
               {tenant?.is_active ? '● Aktif' : '○ Pasif'}
             </span>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${
-              tenant?.azure_subscription_id ? 'bg-blue-900/50 text-blue-400' : 'bg-gray-800 text-gray-500'
-            }`}>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${tenant?.azure_subscription_id ? 'bg-blue-900/50 text-blue-400' : 'bg-gray-800 text-gray-500'}`}>
               {tenant?.azure_subscription_id ? '✓ Azure Bağlı' : '✗ Azure Yok'}
             </span>
           </div>
@@ -164,13 +168,7 @@ export default function CustomerDetailPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
-
-          {/* Müşteri Başlık */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
                 {tenant?.name?.[0]?.toUpperCase()}
@@ -178,9 +176,7 @@ export default function CustomerDetailPage() {
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-white">{tenant?.name}</h2>
                 <p className="text-gray-400 text-sm">{users?.[0]?.email}</p>
-                <p className="text-gray-500 text-xs mt-0.5">
-                  Kayıt: {new Date(tenant?.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
+                <p className="text-gray-500 text-xs mt-0.5">Kayıt: {new Date(tenant?.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
               </div>
               <div className="grid grid-cols-3 gap-6 text-center">
                 <div>
@@ -199,7 +195,6 @@ export default function CustomerDetailPage() {
             </div>
           </motion.div>
 
-          {/* Tabs */}
           <div className="flex gap-2 mb-6 flex-wrap">
             {[
               { key: 'overview', label: 'Genel Bakış' },
@@ -211,9 +206,7 @@ export default function CustomerDetailPage() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  activeTab === tab.key
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'
+                  activeTab === tab.key ? 'bg-blue-600 text-white' : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'
                 }`}
               >
                 {tab.label}
@@ -221,7 +214,6 @@ export default function CustomerDetailPage() {
             ))}
           </div>
 
-          {/* Genel Bakış */}
           {activeTab === 'overview' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -239,7 +231,6 @@ export default function CustomerDetailPage() {
                 ))}
               </div>
 
-              {/* Azure Bilgileri */}
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
                 <h3 className="text-sm font-semibold text-white mb-4">Azure Bağlantı Bilgileri</h3>
                 <div className="space-y-3">
@@ -257,7 +248,6 @@ export default function CustomerDetailPage() {
                 </div>
               </div>
 
-              {/* Kullanıcılar */}
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
                 <h3 className="text-sm font-semibold text-white mb-4">Kullanıcılar ({users?.length})</h3>
                 <div className="space-y-2">
@@ -280,7 +270,6 @@ export default function CustomerDetailPage() {
             </motion.div>
           )}
 
-          {/* Kaynaklar */}
           {activeTab === 'resources' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {resources?.length === 0 ? (
@@ -305,9 +294,7 @@ export default function CustomerDetailPage() {
                           <td className="px-6 py-3 text-gray-400 text-xs">{r.resource_type?.split('/').pop()}</td>
                           <td className="px-6 py-3 text-gray-400 text-xs">{r.location || '-'}</td>
                           <td className="px-6 py-3">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              r.is_active ? 'bg-green-900/50 text-green-400' : 'bg-gray-800 text-gray-500'
-                            }`}>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${r.is_active ? 'bg-green-900/50 text-green-400' : 'bg-gray-800 text-gray-500'}`}>
                               {r.is_active ? 'Aktif' : 'Pasif'}
                             </span>
                           </td>
@@ -320,7 +307,6 @@ export default function CustomerDetailPage() {
             </motion.div>
           )}
 
-          {/* Öneriler */}
           {activeTab === 'recommendations' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
               {recommendations?.length === 0 ? (
@@ -338,8 +324,7 @@ export default function CustomerDetailPage() {
                           r.estimated_monthly_saving >= 200 ? 'bg-yellow-900/50 text-yellow-400' :
                           'bg-gray-800 text-gray-400'
                         }`}>
-                          {r.estimated_monthly_saving >= 500 ? 'Yüksek' :
-                           r.estimated_monthly_saving >= 200 ? 'Orta' : 'Düşük'}
+                          {r.estimated_monthly_saving >= 500 ? 'Yüksek' : r.estimated_monthly_saving >= 200 ? 'Orta' : 'Düşük'}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500">{r.resources?.name}</p>
@@ -360,7 +345,6 @@ export default function CustomerDetailPage() {
             </motion.div>
           )}
 
-          {/* Taramalar */}
           {activeTab === 'scans' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {scanLogs?.length === 0 ? (

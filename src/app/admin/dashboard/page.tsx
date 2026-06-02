@@ -88,10 +88,19 @@ export default function AdminDashboardPage() {
               </span>
             )}
           </Link>
+
+          <Link href="/admin/health" className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/70 transition-all">
+            <div className="p-1.5 rounded-lg bg-green-500/10 text-green-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <span className="text-sm font-medium">Sistem Sağlığı</span>
+          </Link>
         </nav>
 
         <div className="p-3 border-t border-gray-800">
-          <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-800/70 transition-colors group cursor-pointer">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-800/70 transition-colors cursor-pointer group">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               {adminName[0]?.toUpperCase() || 'A'}
             </div>
@@ -190,7 +199,9 @@ export default function AdminDashboardPage() {
                 {customers.slice(0, 5).map((customer, i) => (
                   <div key={i} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl hover:bg-gray-800 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                        customer.is_active ? 'bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-gray-700'
+                      }`}>
                         {customer.name?.[0]?.toUpperCase() || 'M'}
                       </div>
                       <div>
@@ -205,6 +216,12 @@ export default function AdminDashboardPage() {
                       }`}>
                         {customer.is_active ? 'Aktif' : 'Pasif'}
                       </span>
+                      <Link
+                        href={`/admin/customers/${customer.id}`}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        Detay →
+                      </Link>
                     </div>
                   </div>
                 ))}
