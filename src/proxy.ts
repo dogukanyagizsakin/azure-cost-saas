@@ -7,10 +7,8 @@ const SECRET = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 'costpil
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Admin rotalarını koru (/admin/dashboard, /admin/customers vb.)
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
-    const token = request.cookies.get('admin_token')?.value ||
-      request.headers.get('x-admin-token') || ''
+    const token = request.cookies.get('admin_token')?.value || ''
 
     if (!token) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
