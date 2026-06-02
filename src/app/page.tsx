@@ -118,7 +118,13 @@ export default function LandingPage() {
 
         {/* NAV */}
         <nav>
-          <a href="/" className="nav-logo">Unify<span>Tech</span></a>
+          <a href="/" style={{display:'flex', alignItems:'center', textDecoration:'none'}}>
+  <img
+    src="/costpilot-logo.jpg"
+    alt="UnifyTech CostPilot"
+    style={{height:'44px', width:'auto', objectFit:'contain'}}
+  />
+</a>
           <div className="nav-links">
             <a href="#features">Özellikler</a>
             <a href="#ai">AI Asistan</a>
