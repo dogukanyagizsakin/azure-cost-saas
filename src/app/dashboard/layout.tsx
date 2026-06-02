@@ -131,6 +131,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       if (!userData) return
 
+      // Duyuruları yükle
+const [announcements, setAnnouncements] = useState<any[]>([])
+
+useEffect(() => {
+  async function loadAnnouncements() {
+    const res = await fetch('/api/announcements')
+    if (res.ok) {
+      const data = await res.json()
+      setAnnouncements(data.announcements || [])
+    }
+  }
+  loadAnnouncements()
+}, [])
+
       const { data: tenant } = await supabase
         .from('tenants')
         .select('azure_subscription_id')
@@ -438,6 +452,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Sayfa İçeriği */}
+
+{/* Duyuru Banner */}
+{announcements.length > 0 && announcements.map((a: any) => {
+  const colors: Record<string, string> = {
+    info: 'bg-blue-900/30 border-blue-800/50 text-blue-300',
+    warning: 'bg-yellow-900/30 border-yellow-800/50 text-yellow-300',
+    success: 'bg-green-900/30 border-green-800/50 text-green-300',
+    error: 'bg-red-900/30 border-red-800/50 text-red-300',
+  }
+  const icons: Record<string, string> = { info: 'ℹ️', warning: '⚠️', success: '✅', error: '🚨' }
+  return (
+    <div key={a.id} className={`px-6 py-2.5 border-b flex items-center gap-3 ${colors[a.type]}`}>
+      <span className="text-sm flex-shrink-0">{icons[a.type]}</span>
+      <p className="text-xs font-medium flex-1">{a.title} — {a.message}</p>
+    </div>
+  )
+})}
+
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

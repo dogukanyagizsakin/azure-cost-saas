@@ -15,6 +15,9 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true)
   const [scanning, setScanning] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+const [newPassword, setNewPassword] = useState('')
+const [resettingPassword, setResettingPassword] = useState(false)
 
   useEffect(() => { loadDetail() }, [])
 
@@ -52,6 +55,34 @@ export default function CustomerDetailPage() {
     }
     setScanning(false)
   }
+
+  async function handleResetPassword() {
+  if (!newPassword || newPassword.length < 6) {
+    toast.error('Şifre en az 6 karakter olmalı')
+    return
+  }
+  setResettingPassword(true)
+  try {
+    const token = localStorage.getItem('admin_token')
+    const userId = data?.users?.[0]?.id
+    const res = await fetch('/api/admin/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': token || '' },
+      body: JSON.stringify({ userId, newPassword }),
+    })
+    const d = await res.json()
+    if (d.success) {
+      toast.success('Şifre başarıyla sıfırlandı!')
+      setShowPasswordModal(false)
+      setNewPassword('')
+    } else {
+      toast.error(d.error || 'Şifre sıfırlanamadı')
+    }
+  } catch {
+    toast.error('Hata oluştu')
+  }
+  setResettingPassword(false)
+}
 
   if (loading) {
     return (
@@ -154,6 +185,19 @@ export default function CustomerDetailPage() {
               {tenant?.azure_subscription_id ? '✓ Azure Bağlı' : '✗ Azure Yok'}
             </span>
           </div>
+          <button
+  onClick={() => setShowPasswordModal(true)}
+  className="flex items-center gap-2 bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/30 text-yellow-400 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+>
+  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+  </svg>
+  Şifre Sıfırla
+</button>
+
+<button
+  onClick={handleScan}
+  ...
           <button
             onClick={handleScan}
             disabled={scanning || !tenant?.azure_subscription_id}
@@ -395,7 +439,50 @@ export default function CustomerDetailPage() {
             </motion.div>
           )}
         </main>
+      
       </div>
+      {/* Şifre Sıfırlama Modal */}
+{showPasswordModal && (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-white">Şifre Sıfırla</h3>
+          <p className="text-xs text-gray-500 mt-0.5">{data?.users?.[0]?.email}</p>
+        </div>
+        <button onClick={() => setShowPasswordModal(false)} className="text-gray-500 hover:text-white">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="space-y-4">
+        <div>
+          <label className="text-xs text-gray-400 mb-1.5 block">Yeni Şifre</label>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+            placeholder="En az 6 karakter"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+          />
+        </div>
+        <div className="flex gap-3">
+          <button onClick={() => setShowPasswordModal(false)} className="flex-1 border border-gray-700 text-gray-400 hover:text-white py-2.5 rounded-xl text-sm transition-colors">
+            İptal
+          </button>
+          <button
+            onClick={handleResetPassword}
+            disabled={resettingPassword}
+            className="flex-1 bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            {resettingPassword ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Sıfırla'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   )
 }
