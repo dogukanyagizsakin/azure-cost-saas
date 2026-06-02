@@ -75,10 +75,7 @@ const navItems = [
     activeBg: 'bg-cyan-500/20',
     border: 'border-cyan-500/30',
   },
-  {
-    href: '/dashboard/savings',
-    label: 'Tasarruf Planı',
-  },
+
 
 {
   href: '/dashboard/savings',
