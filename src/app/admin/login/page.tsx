@@ -12,32 +12,35 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
+  e.preventDefault()
+  setLoading(true)
 
-    try {
-      const response = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
+  try {
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
 
-      const data = await response.json()
+    const data = await response.json()
 
-      if (data.success) {
-        localStorage.setItem('admin_token', data.token)
-        localStorage.setItem('admin_name', data.name)
-        toast.success(`Hoş geldiniz, ${data.name}!`)
-        router.push('/admin/dashboard')
-      } else {
-        toast.error(data.error || 'Giriş başarısız')
-      }
-    } catch {
-      toast.error('Bağlantı hatası')
+    if (data.success) {
+      // Cookie'ye kaydet (middleware okuyacak)
+      document.cookie = `admin_token=${data.token}; path=/; max-age=86400; SameSite=Strict`
+      localStorage.setItem('admin_token', data.token)
+      localStorage.setItem('admin_name', data.name)
+      toast.success(`Hoş geldiniz, ${data.name}!`)
+      // router.push yerine hard redirect
+      window.location.href = '/admin/dashboard'
+    } else {
+      toast.error(data.error || 'Giriş başarısız')
     }
-
-    setLoading(false)
+  } catch {
+    toast.error('Bağlantı hatası')
   }
+
+  setLoading(false)
+}
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
