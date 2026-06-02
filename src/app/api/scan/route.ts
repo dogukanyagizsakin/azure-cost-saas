@@ -76,58 +76,44 @@ function detectIssues(resource: any, costPerMonth: number) {
   const tags = resource.tags || {}
   const issues = []
 
-  // 1. Boşta VM
-  if (type.includes('virtualmachines')) {
-    issues.push({
-      type: 'idle_vm',
-      title: `Boşta VM: ${resource.name}`,
-      description: 'Bu VM son 7 gündür düşük kullanımda. Durdurulması veya silinmesi önerilir.',
-      saving: costPerMonth > 0 ? costPerMonth * 0.9 : 200,
-    })
-
-    // Rightsizing — VM boyutu küçültülebilir mi?
-    issues.push({
-      type: 'rightsizing',
-      title: `Rightsizing: ${resource.name}`,
-      description: 'VM boyutu mevcut kullanıma göre büyük olabilir. Daha küçük bir SKU ile %30 tasarruf mümkün.',
-      saving: costPerMonth > 0 ? costPerMonth * 0.3 : 150,
-    })
-
-    // Test ortamı mı?
-    const isTestEnv = name.includes('dev') || name.includes('test') || name.includes('staging') ||
+  // VM
+  if (type.includes('microsoft.compute/virtualmachines')) {
+    const isTestEnv = name.includes('dev') || name.includes('test') ||
+      name.includes('staging') ||
       tags.environment?.toLowerCase()?.includes('dev') ||
       tags.environment?.toLowerCase()?.includes('test')
 
+    // Sadece 1 ana öneri — boşta VM
+    issues.push({
+      type: 'idle_vm',
+      title: `Boşta VM: ${resource.name}`,
+      description: 'Bu VM düşük kullanımda. Durdurulması veya silinmesi önerilir.',
+      saving: costPerMonth > 0 ? costPerMonth * 0.9 : 200,
+    })
+
+    // Test ortamı ise zamanlama önerisi
     if (isTestEnv) {
       issues.push({
         type: 'schedule',
         title: `Gece Kapatma: ${resource.name}`,
-        description: 'Bu test/dev VM\'i mesai saatleri dışında (18:00-09:00) otomatik kapatılabilir. %65 tasarruf mümkün.',
+        description: 'Test/dev VM mesai dışında otomatik kapatılabilir. %65 tasarruf.',
         saving: costPerMonth > 0 ? costPerMonth * 0.65 : 180,
       })
     }
-
-    // Reserved Instance önerisi
-    issues.push({
-      type: 'reserved_instance',
-      title: `Reserved Instance: ${resource.name}`,
-      description: '1 yıllık Reserved Instance\'a geçerek bu VM için %40\'a kadar tasarruf edin.',
-      saving: costPerMonth > 0 ? costPerMonth * 0.4 : 120,
-    })
   }
 
-  // 2. Kullanılmayan disk
-  if (type.includes('disks')) {
+  // Disk
+  if (type.includes('microsoft.compute/disks')) {
     issues.push({
       type: 'underused_disk',
       title: `Bağlı Olmayan Disk: ${resource.name}`,
-      description: 'Bu disk herhangi bir VM\'e bağlı değil. Silinmesi veya snapshot alınıp silinmesi önerilir.',
+      description: "Bu disk herhangi bir VM'e bağlı değil. Silinmesi önerilir.",
       saving: costPerMonth > 0 ? costPerMonth * 0.95 : 50,
     })
   }
 
-  // 3. Kullanılmayan Public IP
-  if (type.includes('publicipaddresses')) {
+  // Public IP
+  if (type.includes('microsoft.network/publicipaddresses')) {
     issues.push({
       type: 'orphan_ip',
       title: `Kullanılmayan Public IP: ${resource.name}`,
@@ -136,42 +122,42 @@ function detectIssues(resource: any, costPerMonth: number) {
     })
   }
 
-  // 4. Eski snapshot
-  if (type.includes('snapshots')) {
+  // Snapshot
+  if (type.includes('microsoft.compute/snapshots')) {
     issues.push({
       type: 'old_snapshot',
       title: `Eski Snapshot: ${resource.name}`,
-      description: '30 günden eski snapshot. Gereksizse silinmesi önerilir.',
+      description: 'Eski snapshot gereksizse silinmesi önerilir.',
       saving: costPerMonth > 0 ? costPerMonth * 0.9 : 20,
     })
   }
 
-  // 5. Storage hesabı — katman optimizasyonu
-  if (type.includes('storageaccounts')) {
+  // Storage
+  if (type.includes('microsoft.storage/storageaccounts')) {
     issues.push({
       type: 'storage_tier',
       title: `Depolama Katmanı: ${resource.name}`,
-      description: 'Nadiren erişilen veriler Cool veya Archive katmanına taşınabilir. %50\'ye kadar tasarruf.',
+      description: 'Nadiren erişilen veriler Cool/Archive katmanına taşınabilir.',
       saving: costPerMonth > 0 ? costPerMonth * 0.5 : 30,
     })
   }
 
-  // 6. App Service — boyut optimizasyonu
-  if (type.includes('sites') || type.includes('serverfarms')) {
+  // App Service
+  if (type.includes('microsoft.web/sites') || type.includes('microsoft.web/serverfarms')) {
     issues.push({
       type: 'rightsizing',
       title: `App Service Rightsizing: ${resource.name}`,
-      description: 'App Service planı kullanıma göre küçültülebilir.',
+      description: 'App Service planı küçültülebilir.',
       saving: costPerMonth > 0 ? costPerMonth * 0.35 : 80,
     })
   }
 
-  // 7. SQL Server — rezervasyon önerisi
-  if (type.includes('sqlservers') || type.includes('sql')) {
+  // SQL
+  if (type.includes('microsoft.sql')) {
     issues.push({
       type: 'reserved_instance',
       title: `SQL Reserved Capacity: ${resource.name}`,
-      description: 'Azure SQL için Reserved Capacity satın alarak %33\'e kadar tasarruf edin.',
+      description: 'Reserved Capacity ile %33 tasarruf.',
       saving: costPerMonth > 0 ? costPerMonth * 0.33 : 200,
     })
   }
