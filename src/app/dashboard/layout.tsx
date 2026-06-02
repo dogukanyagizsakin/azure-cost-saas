@@ -85,9 +85,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [stats, setStats] = useState({ resources: 0, recommendations: 0 })
   const [scanning, setScanning] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [ratingOpen, setRatingOpen] = useState(false)
-  const [hoveredRating, setHoveredRating] = useState(0)
-  const [selectedRating, setSelectedRating] = useState(0)
 
   useEffect(() => {
     async function loadUser() {
@@ -187,7 +184,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )}
             {sidebarOpen && (
-              <button onClick={() => setSidebarOpen(false)} className="text-gray-600 hover:text-gray-400 transition-colors">
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="text-gray-600 hover:text-gray-400 transition-colors"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                 </svg>
@@ -321,21 +321,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </button>
 
-{/* Destek */}
-<button
-  onClick={() => window.location.href = 'mailto:info@unifytech.com.tr'}
-  title={!sidebarOpen ? 'Destek' : undefined}
-  className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-gray-800/70 group"
->
-  <div className="flex-shrink-0 p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400">
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  </div>
-  {sidebarOpen && (
-    <span className="text-sm font-medium">Destek</span>
-  )}
-</button>
+          {/* Destek */}
+          <button
+            onClick={() => { window.location.href = 'mailto:info@unifytech.com.tr' }}
+            title={!sidebarOpen ? 'Destek' : undefined}
+            className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-gray-800/70 group"
+          >
+            <div className="flex-shrink-0 p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            {sidebarOpen && (
+              <span className="text-sm font-medium">Destek</span>
+            )}
+          </button>
+
+        </nav>
 
         {/* Kullanıcı Profili */}
         <div className="p-3 border-t border-gray-800">
