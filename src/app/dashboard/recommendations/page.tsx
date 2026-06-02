@@ -17,12 +17,17 @@ type Recommendation = {
 }
 
 const typeLabel: Record<string, string> = {
-  idle_vm: 'Boşta VM',
-  underused_disk: 'Kullanılmayan Disk',
-  orphan_ip: 'Orphan IP',
-  overprovisioned: 'Aşırı Boyutlu',
-  unused_resource: 'Kullanılmayan Kaynak',
-  rightsizing: 'Boyutlandırma',
+  idle_vm: '🖥️ Boşta VM',
+  underused_disk: '💾 Kullanılmayan Disk',
+  orphan_ip: '🌐 Orphan IP',
+  overprovisioned: '📐 Aşırı Boyutlu',
+  unused_resource: '🗑️ Kullanılmayan Kaynak',
+  rightsizing: '📐 Rightsizing',
+  reserved_instance: '📅 Reserved Instance',
+  schedule: '⏰ Zamanlama',
+  storage_tier: '📦 Depolama Katmanı',
+  old_snapshot: '📸 Eski Snapshot',
+  savings_plan: '💰 Savings Plan',
 }
 
 const priorityColor = (saving: number) => {
