@@ -17,6 +17,10 @@ export default function LoginPage() {
   const [showEmailPassword, setShowEmailPassword] = useState(false)
   const [emailLoading, setEmailLoading] = useState(false)
   const [emailForm, setEmailForm] = useState({ email: '', password: '' })
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotSent, setForgotSent] = useState(false)
 
   async function handleMicrosoftLogin() {
     setLoading(true)
@@ -50,47 +54,59 @@ export default function LoginPage() {
   }
 
   async function handleEmailLogin(e: React.FormEvent) {
-  e.preventDefault()
-  setEmailLoading(true)
-  setError('')
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: emailForm.email,
-      password: emailForm.password,
-    })
-
-    if (error) {
-      if (error.message.includes('banned')) {
-        setError('Hesabınız pasif edilmiştir. Lütfen yöneticinizle iletişime geçin.')
-      } else {
-        setError('Email veya şifre hatalı.')
-      }
-      setEmailLoading(false)
-      return
-    }
-
-    if (data.session) {
-      const res = await fetch('/api/auth/setup-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: data.session.access_token }),
+    e.preventDefault()
+    setEmailLoading(true)
+    setError('')
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailForm.email,
+        password: emailForm.password,
       })
-      const setupData = await res.json()
-
-      if (res.status === 403) {
-        await supabase.auth.signOut()
-        setError(setupData.error || 'Hesabınız pasif edilmiştir.')
+      if (error) {
+        if (error.message.includes('banned')) {
+          setError('Hesabınız pasif edilmiştir. Lütfen yöneticinizle iletişime geçin.')
+        } else {
+          setError('Email veya şifre hatalı.')
+        }
         setEmailLoading(false)
         return
       }
-
-      window.location.href = '/dashboard'
+      if (data.session) {
+        const res = await fetch('/api/auth/setup-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken: data.session.access_token }),
+        })
+        const setupData = await res.json()
+        if (res.status === 403) {
+          await supabase.auth.signOut()
+          setError(setupData.error || 'Hesabınız pasif edilmiştir.')
+          setEmailLoading(false)
+          return
+        }
+        window.location.href = '/dashboard'
+      }
+    } catch {
+      setError('Giriş yapılırken hata oluştu.')
     }
-  } catch {
-    setError('Giriş yapılırken hata oluştu.')
+    setEmailLoading(false)
   }
-  setEmailLoading(false)
-}
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault()
+    setForgotLoading(true)
+    try {
+      await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail }),
+      })
+      setForgotSent(true)
+    } catch {
+      toast.error('Bir hata oluştu')
+    }
+    setForgotLoading(false)
+  }
 
   async function handleAdminLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -127,21 +143,16 @@ export default function LoginPage() {
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
 
         <div className="relative z-10 flex flex-col items-center text-center w-full max-w-sm">
-
-          {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <span className="text-white font-bold text-4xl tracking-tight">Unify</span>
             <span className="text-blue-400 font-light text-4xl tracking-tight">Tech</span>
             <span className="text-gray-400 font-light text-lg tracking-widest mt-1">BİLGİ SİSTEMLERİ</span>
           </div>
-
           <div className="border-t border-gray-800 w-16 mb-12" />
-
           <h2 className="text-2xl font-semibold text-white mb-4">Azure Maliyet Yönetimi</h2>
           <p className="text-gray-400 max-w-sm leading-relaxed">
             Azure kaynaklarınızı otomatik tarayın, kullanılmayan kaynakları tespit edin ve maliyetlerinizi optimize edin.
           </p>
-
           <div className="mt-12 grid grid-cols-3 gap-8 w-full">
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-400">%40</p>
@@ -169,7 +180,6 @@ export default function LoginPage() {
               Yönetici Girişi
             </button>
           </div>
-
         </div>
       </div>
 
@@ -177,7 +187,6 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 bg-gray-950 flex flex-col items-center justify-center p-8">
         <div className="w-full max-w-sm">
 
-          {/* Mobilde logo */}
           <div className="lg:hidden flex items-center gap-3 mb-10 justify-center">
             <span className="text-white font-bold text-3xl tracking-tight">Unify</span>
             <span className="text-blue-400 font-light text-3xl tracking-tight">Tech</span>
@@ -230,7 +239,8 @@ export default function LoginPage() {
             </svg>
             {loading ? 'Yönlendiriliyor...' : 'Google ile Giriş Yap'}
           </button>
-<div className="my-4 flex items-center gap-3">
+
+          <div className="my-4 flex items-center gap-3">
             <div className="flex-1 h-px bg-gray-800" />
             <span className="text-gray-600 text-xs">veya email ile giriş</span>
             <div className="flex-1 h-px bg-gray-800" />
@@ -285,6 +295,16 @@ export default function LoginPage() {
                     </svg>
                   </button>
                 </div>
+                {/* Şifremi Unuttum */}
+                <div className="flex justify-end mt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(true); setForgotEmail(emailForm.email) }}
+                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    Şifremi unuttum
+                  </button>
+                </div>
               </div>
               <div className="flex gap-2 pt-1">
                 <button
@@ -306,11 +326,12 @@ export default function LoginPage() {
               </div>
             </form>
           )}
+
           <div className="mt-6 bg-gray-900 rounded-xl p-4 border border-gray-800">
             <p className="text-xs text-gray-500 leading-relaxed">
               <span className="text-gray-300 font-medium">İlk kez mi giriş yapıyorsunuz?</span>
               <br />
-              Hesabınızla giriş yaptığınızda şirket hesabınız otomatik olarak oluşturulur. Ek bir kayıt işlemi gerekmez.
+              Hesabınızla giriş yaptığınızda şirket hesabınız otomatik olarak oluşturulur.
             </p>
           </div>
 
@@ -328,6 +349,86 @@ export default function LoginPage() {
           <p className="text-center text-gray-700 text-xs mt-8">© 2025 UnifyTech · Tüm hakları saklıdır</p>
         </div>
       </div>
+
+      {/* Şifremi Unuttum Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-yellow-600/20 rounded-xl flex items-center justify-center">
+                  <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Şifremi Unuttum</p>
+                  <p className="text-xs text-gray-500">Sıfırlama talebi gönder</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setShowForgotPassword(false); setForgotSent(false); setForgotEmail('') }}
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {forgotSent ? (
+              <div className="text-center py-4">
+                <div className="text-4xl mb-4">✅</div>
+                <h3 className="text-white font-semibold mb-2">Talebiniz Alındı!</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Şifre sıfırlama talebiniz yöneticimize iletildi. En kısa sürede yeni şifreniz bildirilecektir.
+                </p>
+                <button
+                  onClick={() => { setShowForgotPassword(false); setForgotSent(false); setForgotEmail('') }}
+                  className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-medium transition-colors"
+                >
+                  Tamam
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <p className="text-sm text-gray-400">
+                  Kayıtlı email adresinizi girin. Yöneticiniz en kısa sürede sizinle iletişime geçecektir.
+                </p>
+                <div>
+                  <label className="text-xs text-gray-400 mb-1.5 block">Email Adresiniz</label>
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={e => setForgotEmail(e.target.value)}
+                    placeholder="ornek@sirket.com"
+                    required
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(false); setForgotEmail('') }}
+                    className="flex-1 border border-gray-700 text-gray-400 hover:text-white py-3 rounded-xl text-sm transition-colors"
+                  >
+                    İptal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                  >
+                    {forgotLoading ? (
+                      <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Gönderiliyor...</>
+                    ) : 'Talep Gönder'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Admin Login Modal */}
       {showAdminModal && (
@@ -367,7 +468,6 @@ export default function LoginPage() {
                   className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
-
               <div>
                 <label className="text-xs text-gray-400 mb-1.5 block">Şifre</label>
                 <div className="relative">
@@ -394,7 +494,6 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-
               <button
                 type="submit"
                 disabled={adminLoading}
