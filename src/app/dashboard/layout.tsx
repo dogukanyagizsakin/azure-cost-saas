@@ -78,7 +78,7 @@ const navItems = [
   {
     href: '/dashboard/savings',
     label: 'Tasarruf Planı',
-  }
+  },
 
 {
   href: '/dashboard/savings',
