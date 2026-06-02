@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { AIChat } from '@/components/ui/AIChat'
+import { toast } from 'sonner'
 import Link from 'next/link'
 
 const navItems = [
@@ -87,7 +88,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [ratingOpen, setRatingOpen] = useState(false)
   const [hoveredRating, setHoveredRating] = useState(0)
   const [selectedRating, setSelectedRating] = useState(0)
-  
 
   useEffect(() => {
     async function loadUser() {
@@ -156,42 +156,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen bg-gray-950 overflow-hidden">
 
       {/* Sidebar */}
-      <aside
-        className={[
-          sidebarOpen ? 'w-60' : 'w-16',
-          'bg-gray-900 border-r border-gray-800 flex flex-col transition-all duration-300 flex-shrink-0 relative'
-        ].join(' ')}
-      >
+      <aside className={[
+        sidebarOpen ? 'w-60' : 'w-16',
+        'bg-gray-900 border-r border-gray-800 flex flex-col transition-all duration-300 flex-shrink-0 relative'
+      ].join(' ')}>
+
         {/* Logo */}
         <div className="p-4 border-b border-gray-800">
           <div className="flex items-center justify-between">
             {sidebarOpen ? (
               <Link href="/dashboard" className="flex items-center gap-3">
-  <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-    </svg>
-  </div>
-  <div>
-    <div className="flex items-center gap-1">
-      <span className="text-white font-bold text-base tracking-tight">Unify</span>
-      <span className="text-blue-400 font-light text-base tracking-tight">Tech</span>
-    </div>
-    <p className="text-gray-500 text-xs font-medium tracking-widest uppercase">Cost Pilot</p>
-  </div>
-</Link>
+                <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="flex items-center gap-0.5">
+                    <span className="text-white font-bold text-base tracking-tight">Unify</span>
+                    <span className="text-blue-400 font-light text-base tracking-tight">Tech</span>
+                  </div>
+                  <p className="text-gray-500 text-xs font-medium tracking-widest uppercase">Cost Pilot</p>
+                </div>
+              </Link>
             ) : (
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mx-auto">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center mx-auto">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
             )}
             {sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="text-gray-600 hover:text-gray-400 transition-colors"
-              >
+              <button onClick={() => setSidebarOpen(false)} className="text-gray-600 hover:text-gray-400 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                 </svg>
@@ -325,107 +321,117 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </button>
 
-{/* Destek */}
-<a
-  href="mailto:destek@unifytech.com.tr"
-  title={!sidebarOpen ? 'Destek' : undefined}
-  className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-gray-800/70 group"
->
-  <div className="flex-shrink-0 p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400">
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  </div>
-  {sidebarOpen && (
-    <span className="text-sm font-medium">Destek</span>
-  )}
-</a>
-
-          {/* Değerlendirme */}
-          {/* Değerlendirme */}
-<div className="relative">
-  <button
-    onClick={() => setRatingOpen(!ratingOpen)}
-    title={!sidebarOpen ? 'Değerlendirme' : undefined}
-    className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-gray-800/70 group"
-  >
-    <div className="flex-shrink-0 p-1.5 rounded-lg bg-pink-500/10 text-pink-400">
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-      </svg>
-    </div>
-    {sidebarOpen && <span className="text-sm font-medium">Değerlendirme</span>}
-  </button>
-
-  {/* Rating Popup */}
-  {ratingOpen && (
-    <div className="absolute bottom-full left-0 mb-2 w-64 bg-gray-800 border border-gray-700 rounded-xl p-4 shadow-xl z-50">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-white">Uygulamayı Değerlendirin</p>
-        <button onClick={() => setRatingOpen(false)} className="text-gray-500 hover:text-white">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <p className="text-xs text-gray-400 mb-3">Deneyiminiz nasıldı?</p>
-      <div className="flex items-center gap-1 justify-center mb-3">
-        {[1, 2, 3, 4, 5].map(star => (
-          <button
-            key={star}
-            onClick={() => setHoveredRating(star)}
-            onMouseEnter={() => setHoveredRating(star)}
-            onMouseLeave={() => setHoveredRating(selectedRating)}
-            className="transition-transform hover:scale-125"
+          {/* Destek */}
+          
+            href="mailto:info@unifytech.com.tr"
+            title={!sidebarOpen ? 'Destek' : undefined}
+            className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-gray-800/70 group"
           >
-            <svg
-              className={`w-8 h-8 transition-colors ${
-                star <= (hoveredRating || selectedRating)
-                  ? 'text-yellow-400'
-                  : 'text-gray-600'
-              }`}
-              fill={star <= (hoveredRating || selectedRating) ? 'currentColor' : 'none'}
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            <div className="flex-shrink-0 p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            {sidebarOpen && <span className="text-sm font-medium">Destek</span>}
+          </a>
+
+          {/* Değerlendirme */}
+          <div className="relative">
+            <button
+              onClick={() => setRatingOpen(!ratingOpen)}
+              title={!sidebarOpen ? 'Değerlendirme' : undefined}
+              className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-gray-800/70 group"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-            </svg>
-          </button>
-        ))}
-      </div>
-      {hoveredRating > 0 && (
-        <p className="text-xs text-center text-gray-400 mb-3">
-          {hoveredRating === 1 ? '😞 Çok Kötü' :
-           hoveredRating === 2 ? '😕 Kötü' :
-           hoveredRating === 3 ? '😐 Orta' :
-           hoveredRating === 4 ? '😊 İyi' :
-           '🤩 Mükemmel!'}
-        </p>
-      )}
-      <button
-        onClick={() => {
-          if (hoveredRating > 0) {
-            setSelectedRating(hoveredRating)
-            setRatingOpen(false)
-            // Toast ile teşekkür mesajı göster
-            import('sonner').then(({ toast }) => {
-              toast.success(`${hoveredRating} yıldız verdiniz, teşekkürler! 🙏`)
-            })
-          }
-        }}
-        disabled={hoveredRating === 0}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm font-medium py-2 rounded-lg transition-colors"
-      >
-        Gönder
-      </button>
-    </div>
-  )}
-</div>
+              <div className="flex-shrink-0 p-1.5 rounded-lg bg-pink-500/10 text-pink-400">
+                <svg
+                  className="w-4 h-4"
+                  fill={selectedRating > 0 ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              </div>
+              {sidebarOpen && (
+                <span className="text-sm font-medium">
+                  {selectedRating > 0 ? `${selectedRating} Yıldız` : 'Değerlendirme'}
+                </span>
+              )}
+            </button>
+
+            {/* Rating Popup */}
+            {ratingOpen && (
+              <div className="absolute bottom-full left-0 mb-2 w-56 bg-gray-800 border border-gray-700 rounded-2xl p-4 shadow-2xl z-50">
+                <div className="absolute -bottom-2 left-6 w-4 h-4 bg-gray-800 border-r border-b border-gray-700 rotate-45" />
+
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-white">Değerlendirin</p>
+                  <button
+                    onClick={() => { setRatingOpen(false); setHoveredRating(0) }}
+                    className="text-gray-500 hover:text-white transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* 5 Yıldız */}
+                <div className="flex items-center justify-center gap-1 mb-2">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      key={star}
+                      onClick={() => setHoveredRating(star)}
+                      onMouseEnter={() => setHoveredRating(star)}
+                      onMouseLeave={() => setHoveredRating(selectedRating)}
+                      className="transition-all hover:scale-125 active:scale-110"
+                    >
+                      <svg
+                        className={[
+                          'w-8 h-8 transition-colors',
+                          star <= (hoveredRating || selectedRating) ? 'text-yellow-400' : 'text-gray-600'
+                        ].join(' ')}
+                        fill={star <= (hoveredRating || selectedRating) ? 'currentColor' : 'none'}
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Etiket */}
+                <div className="h-5 flex items-center justify-center mb-3">
+                  {hoveredRating > 0 && (
+                    <p className="text-xs text-center text-gray-300">
+                      {hoveredRating === 1 ? '😞 Çok Kötü' :
+                       hoveredRating === 2 ? '😕 Kötü' :
+                       hoveredRating === 3 ? '😐 Orta' :
+                       hoveredRating === 4 ? '😊 İyi' : '🤩 Mükemmel!'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Gönder */}
+                <button
+                  onClick={() => {
+                    if (hoveredRating === 0) return
+                    setSelectedRating(hoveredRating)
+                    setRatingOpen(false)
+                    setHoveredRating(0)
+                    toast.success('Değerlendirmeniz gönderildi, teşekkürler! 🙏', {
+                      duration: 3000,
+                    })
+                  }}
+                  disabled={hoveredRating === 0}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium py-2 rounded-xl transition-colors"
+                >
+                  Gönder
+                </button>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Kullanıcı Profili */}
