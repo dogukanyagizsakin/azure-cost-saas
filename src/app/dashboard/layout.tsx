@@ -145,6 +145,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       }
 
+// Onboarding kontrolü
+const onboardingRes = await fetch(`/api/onboarding?accessToken=${session.access_token}`)
+if (onboardingRes.ok) {
+  const onboardingData = await onboardingRes.json()
+  if (!onboardingData.onboardingCompleted) {
+    window.location.href = '/dashboard/onboarding'
+    return
+  }
+}
       const { data: userData } = await supabase
         .from('users')
         .select('tenant_id, role')
