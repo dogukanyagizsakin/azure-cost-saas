@@ -28,10 +28,22 @@ export async function POST(request: Request) {
       .eq('id', userData.tenant_id)
       .single()
 
-    // Azure'dan gerçek subscription adını çek
+   // Azure'dan gerçek subscription adını çek
     let subscriptionName = tenant?.name || ''
+
+    // Önce azure_subscriptions tablosuna bak
+    const { data: azureSubs } = await adminSupabase
+      .from('azure_subscriptions')
+      .select('subscription_id, subscription_name')
+      .eq('tenant_id', userData.tenant_id)
+      .eq('is_active', true)
+      .limit(1)
+      .single()
+
+    const activeSubId = azureSubs?.subscription_id || tenant?.azure_subscription_id
+
     if (
-      tenant?.azure_subscription_id &&
+      activeSubId &&
       tenant?.azure_tenant_id &&
       tenant?.azure_client_id &&
       tenant?.azure_client_secret
@@ -53,16 +65,19 @@ export async function POST(request: Request) {
         if (tokenRes.ok) {
           const tokenData = await tokenRes.json()
           const subRes = await fetch(
-            `https://management.azure.com/subscriptions/${tenant.azure_subscription_id}?api-version=2022-12-01`,
+            `https://management.azure.com/subscriptions/${activeSubId}?api-version=2022-12-01`,
             { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
           )
           if (subRes.ok) {
             const subData = await subRes.json()
-            subscriptionName = subData.displayName || tenant.name
+            subscriptionName = subData.displayName || azureSubs?.subscription_name || tenant?.name
+          } else {
+            // Azure'dan alınamazsa tablodaki ismi kullan
+            subscriptionName = azureSubs?.subscription_name || tenant?.name || ''
           }
         }
       } catch {
-        subscriptionName = tenant?.name || ''
+        subscriptionName = azureSubs?.subscription_name || tenant?.name || ''
       }
     }
 
