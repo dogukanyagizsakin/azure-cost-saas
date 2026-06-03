@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { AIChat } from '@/components/ui/AIChat'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -484,9 +485,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )
         })}
 
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+       <main className="flex-1 overflow-y-auto">
+  <ErrorBoundary>
+    {children}
+  </ErrorBoundary>
+</main>
       </div>
 
       <AIChat />
