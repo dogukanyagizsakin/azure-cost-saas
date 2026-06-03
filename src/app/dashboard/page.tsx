@@ -3,7 +3,6 @@ import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { useState, useEffect, useRef } from 'react'
 import { motion, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { toast } from 'sonner'
-import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { supabase } from '@/lib/supabase'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
