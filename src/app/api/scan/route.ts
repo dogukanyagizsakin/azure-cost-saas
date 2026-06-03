@@ -83,7 +83,6 @@ function detectIssues(resource: any, costPerMonth: number) {
 
   const saving = (pct: number) => costPerMonth > 0 ? costPerMonth * pct : 50
 
-  // VM / Hybrid Compute / Arc Machines
   if (
     type.includes('virtualmachines') ||
     type.includes('hybridcompute/machines') ||
@@ -106,17 +105,15 @@ function detectIssues(resource: any, costPerMonth: number) {
     }
   }
 
-  // Diskler
   if (type.includes('disks')) {
     issues.push({
       type: 'underused_disk',
       title: `Bağlı Olmayan Disk: ${resource.name}`,
-      description: "Bu disk herhangi bir makineye bağlı değil. Silinmesi önerilir.",
+      description: 'Bu disk herhangi bir makineye bağlı değil. Silinmesi önerilir.',
       saving: saving(0.95),
     })
   }
 
-  // Public IP
   if (type.includes('publicipaddresses')) {
     issues.push({
       type: 'orphan_ip',
@@ -126,7 +123,6 @@ function detectIssues(resource: any, costPerMonth: number) {
     })
   }
 
-  // Snapshot
   if (type.includes('snapshots')) {
     issues.push({
       type: 'old_snapshot',
@@ -136,7 +132,6 @@ function detectIssues(resource: any, costPerMonth: number) {
     })
   }
 
-  // Storage
   if (type.includes('storageaccounts')) {
     issues.push({
       type: 'storage_tier',
@@ -146,7 +141,6 @@ function detectIssues(resource: any, costPerMonth: number) {
     })
   }
 
-  // App Service
   if (type.includes('microsoft.web/sites') || type.includes('microsoft.web/serverfarms')) {
     issues.push({
       type: 'rightsizing',
@@ -156,7 +150,6 @@ function detectIssues(resource: any, costPerMonth: number) {
     })
   }
 
-  // SQL (her türlü SQL)
   if (
     type.includes('microsoft.sql') ||
     type.includes('sqlservers') ||
@@ -171,7 +164,6 @@ function detectIssues(resource: any, costPerMonth: number) {
     })
   }
 
-  // Insights / Monitoring
   if (
     type.includes('microsoft.insights') ||
     type.includes('microsoft.operationalinsights') ||
@@ -185,7 +177,6 @@ function detectIssues(resource: any, costPerMonth: number) {
     })
   }
 
-  // Eğer hiçbir kural eşleşmediyse genel öneri üret
   if (issues.length === 0) {
     issues.push({
       type: 'rightsizing',
@@ -231,8 +222,21 @@ export async function POST(request: Request) {
       .eq('id', userData.tenant_id)
       .single()
 
-    if (!tenant?.azure_subscription_id) {
-      return NextResponse.json({ error: 'Azure bağlantısı yapılmamış.' }, { status: 400 })
+    // Subscriptionları al (yeni tablo önce, fallback eski alan)
+    const { data: subscriptions } = await adminSupabase
+      .from('azure_subscriptions')
+      .select('subscription_id, subscription_name')
+      .eq('tenant_id', userData.tenant_id)
+      .eq('is_active', true)
+
+    const subList = subscriptions && subscriptions.length > 0
+      ? subscriptions
+      : tenant?.azure_subscription_id
+        ? [{ subscription_id: tenant.azure_subscription_id, subscription_name: 'Ana Subscription' }]
+        : []
+
+    if (subList.length === 0) {
+      return NextResponse.json({ error: 'Azure subscription bulunamadı.' }, { status: 400 })
     }
 
     // Tarama logu başlat
@@ -253,8 +257,23 @@ export async function POST(request: Request) {
         tenant.azure_client_secret
       )
 
-      const resources = await getResources(azureToken, tenant.azure_subscription_id)
-      const costs = await getCosts(azureToken, tenant.azure_subscription_id)
+      // Tüm subscriptionları tara
+      let allResources: any[] = []
+      let allCosts: any[] = []
+
+      for (const sub of subList) {
+        const subResources = await getResources(azureToken, sub.subscription_id)
+        const subCosts = await getCosts(azureToken, sub.subscription_id)
+        subResources.forEach((r: any) => {
+          r._subscriptionId = sub.subscription_id
+          r._subscriptionName = sub.subscription_name
+        })
+        allResources = [...allResources, ...subResources]
+        allCosts = [...allCosts, ...subCosts]
+      }
+
+      const resources = allResources
+      const costs = allCosts
 
       const costMap: Record<string, number> = {}
       costs.forEach((row: any[]) => {
@@ -303,7 +322,7 @@ export async function POST(request: Request) {
               resource_type: resource.type,
               resource_group: resource.id?.split('/resourceGroups/')[1]?.split('/')[0] || '',
               location: resource.location || '',
-              subscription_id: tenant.azure_subscription_id,
+              subscription_id: resource._subscriptionId || tenant.azure_subscription_id,
               tags: resource.tags || {},
             })
             .select()
@@ -311,7 +330,6 @@ export async function POST(request: Request) {
           resourceId = newResource?.id
         }
 
-        // Maliyet snapshot kaydet (sadece cost destekleniyorsa)
         if (resourceId && resourceCost > 0 && costSupported) {
           const now = new Date()
           await adminSupabase.from('cost_snapshots').insert({
@@ -323,7 +341,6 @@ export async function POST(request: Request) {
           })
         }
 
-        // Öneri tespiti
         if (resourceId) {
           const issues = detectIssues(resource, resourceCost)
           for (const issue of issues) {
@@ -367,7 +384,6 @@ export async function POST(request: Request) {
         })
         .eq('id', scanLog?.id)
 
-      // Bildirim e-postası gönder
       try {
         const { data: users } = await adminSupabase
           .from('users')
@@ -399,6 +415,7 @@ export async function POST(request: Request) {
         recommendationsFound,
         totalCost: totalCost.toFixed(2),
         costSupported,
+        subscriptionsScanned: subList.length,
       })
 
     } catch (scanError: any) {

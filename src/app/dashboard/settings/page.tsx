@@ -45,7 +45,6 @@ function BudgetTab() {
     <div className="space-y-6">
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
         <h3 className="text-sm font-semibold text-white">Aylık Bütçe Limiti</h3>
-
         <div>
           <label className="block text-xs text-gray-400 mb-1.5">Aylık Bütçe ($)</label>
           <div className="relative">
@@ -60,11 +59,8 @@ function BudgetTab() {
           </div>
           <p className="text-xs text-gray-600 mt-1">Aylık Azure harcama limitinizi belirleyin</p>
         </div>
-
         <div>
-          <label className="block text-xs text-gray-400 mb-1.5">
-            Uyarı Eşiği — %{alertThreshold}
-          </label>
+          <label className="block text-xs text-gray-400 mb-1.5">Uyarı Eşiği — %{alertThreshold}</label>
           <input
             type="range"
             min="50"
@@ -80,7 +76,6 @@ function BudgetTab() {
             <span>%95</span>
           </div>
         </div>
-
         {budgetNum > 0 && (
           <div className="bg-gray-800 rounded-xl p-4">
             <p className="text-xs text-gray-500 mb-3">Mevcut Durum Önizlemesi</p>
@@ -92,8 +87,7 @@ function BudgetTab() {
               <div
                 className={`h-full rounded-full transition-all ${
                   percentage >= 100 ? 'bg-red-500' :
-                  percentage >= parseInt(alertThreshold) ? 'bg-yellow-500' :
-                  'bg-green-500'
+                  percentage >= parseInt(alertThreshold) ? 'bg-yellow-500' : 'bg-green-500'
                 }`}
                 style={{ width: `${Math.min(percentage, 100)}%` }}
               />
@@ -102,17 +96,14 @@ function BudgetTab() {
               <span className="text-xs text-gray-500">%{percentage} kullanıldı</span>
               <span className={`text-xs font-medium ${
                 percentage >= 100 ? 'text-red-400' :
-                percentage >= parseInt(alertThreshold) ? 'text-yellow-400' :
-                'text-green-400'
+                percentage >= parseInt(alertThreshold) ? 'text-yellow-400' : 'text-green-400'
               }`}>
                 {percentage >= 100 ? '⚠ Bütçe aşıldı!' :
-                 percentage >= parseInt(alertThreshold) ? '⚠ Uyarı eşiğine ulaşıldı' :
-                 '✓ Bütçe dahilinde'}
+                 percentage >= parseInt(alertThreshold) ? '⚠ Uyarı eşiğine ulaşıldı' : '✓ Bütçe dahilinde'}
               </span>
             </div>
           </div>
         )}
-
         <button
           onClick={handleSave}
           disabled={saving}
@@ -154,9 +145,7 @@ function TeamTab() {
   const [invitations, setInvitations] = useState<any[]>([])
   const [members, setMembers] = useState<any[]>([])
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  useEffect(() => { loadData() }, [])
 
   async function loadData() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -219,8 +208,7 @@ function TeamTab() {
               </div>
               <span className={`text-xs px-2 py-0.5 rounded-full ${
                 m.role === 'owner' ? 'bg-purple-900/50 text-purple-400' :
-                m.role === 'admin' ? 'bg-blue-900/50 text-blue-400' :
-                'bg-gray-800 text-gray-400'
+                m.role === 'admin' ? 'bg-blue-900/50 text-blue-400' : 'bg-gray-800 text-gray-400'
               }`}>
                 {m.role === 'owner' ? 'Sahip' : m.role === 'admin' ? 'Admin' : 'Görüntüleyici'}
               </span>
@@ -270,8 +258,7 @@ function TeamTab() {
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${
                   inv.status === 'pending' ? 'bg-yellow-900/50 text-yellow-400' :
-                  inv.status === 'accepted' ? 'bg-green-900/50 text-green-400' :
-                  'bg-gray-800 text-gray-400'
+                  inv.status === 'accepted' ? 'bg-green-900/50 text-green-400' : 'bg-gray-800 text-gray-400'
                 }`}>
                   {inv.status === 'pending' ? 'Bekliyor' : inv.status === 'accepted' ? 'Kabul Edildi' : 'Süresi Doldu'}
                 </span>
@@ -288,11 +275,14 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'azure' | 'notifications' | 'budget' | 'team' | 'account'>('azure')
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [sendingTest, setSendingTest] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'success' | 'error' | 'testing'>('unknown')
   const [connectionMessage, setConnectionMessage] = useState('')
   const [subscriptionName, setSubscriptionName] = useState('')
+  const [subscriptions, setSubscriptions] = useState<any[]>([])
+  const [newSubId, setNewSubId] = useState('')
+  const [newSubName, setNewSubName] = useState('')
+  const [addingSubscription, setAddingSubscription] = useState(false)
 
   const [azureForm, setAzureForm] = useState({
     subscriptionId: '',
@@ -310,65 +300,70 @@ export default function SettingsPage() {
   })
 
   useEffect(() => {
-    async function loadSettings() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
-
-      setNotifForm(prev => ({ ...prev, email: session.user.email || '' }))
-
-      const { data: userData } = await supabase
-        .from('users')
-        .select('tenant_id')
-        .eq('id', session.user.id)
-        .single()
-
-      if (!userData) return
-
-      const { data: tenant } = await supabase
-        .from('tenants')
-        .select('*')
-        .eq('id', userData.tenant_id)
-        .single()
-
-      if (tenant) {
-        setAzureForm({
-          subscriptionId: tenant.azure_subscription_id || '',
-          tenantId: tenant.azure_tenant_id || '',
-          clientId: tenant.azure_client_id || '',
-          clientSecret: tenant.azure_client_secret ? '••••••••••••••••' : '',
-        })
-        if (tenant.azure_subscription_id) {
-          setConnectionStatus('success')
-          setConnectionMessage('Azure bağlantısı mevcut')
-        }
-      }
-    }
     loadSettings()
   }, [])
 
-async function handleAzureSave() {
-  setSaving(true)
-  try {
+  async function loadSettings() {
     const { data: { session } } = await supabase.auth.getSession()
-    const response = await fetch('/api/azure/save-credentials', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...azureForm,
-        accessToken: session?.access_token,
-      }),
-    })
-    const data = await response.json()
-    if (data.success) {
-      toast.success('Azure bilgileri kaydedildi!')
-    } else {
-      toast.error('Hata: ' + data.error)
+    if (!session) return
+
+    setNotifForm(prev => ({ ...prev, email: session.user.email || '' }))
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('tenant_id')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!userData) return
+
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('*')
+      .eq('id', userData.tenant_id)
+      .single()
+
+    if (tenant) {
+      setAzureForm({
+        subscriptionId: tenant.azure_subscription_id || '',
+        tenantId: tenant.azure_tenant_id || '',
+        clientId: tenant.azure_client_id || '',
+        clientSecret: tenant.azure_client_secret ? '••••••••••••••••' : '',
+      })
+      if (tenant.azure_subscription_id) {
+        setConnectionStatus('success')
+        setConnectionMessage('Azure bağlantısı mevcut')
+      }
     }
-  } catch {
-    toast.error('Kaydetme sırasında hata oluştu')
+
+    // Subscriptionları yükle
+    const subRes = await fetch(`/api/azure/subscriptions?accessToken=${session.access_token}`)
+    if (subRes.ok) {
+      const subData = await subRes.json()
+      setSubscriptions(subData.subscriptions || [])
+    }
   }
-  setSaving(false)
-}
+
+  async function handleAzureSave() {
+    setSaving(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch('/api/azure/save-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...azureForm, accessToken: session?.access_token }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        toast.success('Azure bilgileri kaydedildi!')
+      } else {
+        toast.error('Hata: ' + data.error)
+      }
+    } catch {
+      toast.error('Kaydetme sırasında hata oluştu')
+    }
+    setSaving(false)
+  }
 
   async function handleTestConnection() {
     setTesting(true)
@@ -407,10 +402,7 @@ async function handleAzureSave() {
   }
 
   async function handleTestEmail() {
-    if (!notifForm.email) {
-      toast.error('Önce e-posta adresinizi girin')
-      return
-    }
+    if (!notifForm.email) { toast.error('Önce e-posta adresinizi girin'); return }
     setSendingTest(true)
     try {
       const res = await fetch('/api/notify', {
@@ -432,7 +424,7 @@ async function handleAzureSave() {
       })
       const data = await res.json()
       if (data.success) {
-        toast.success('Test e-postası gönderildi! Gelen kutunuzu kontrol edin.')
+        toast.success('Test e-postası gönderildi!')
       } else {
         toast.error('Hata: ' + data.error)
       }
@@ -440,6 +432,61 @@ async function handleAzureSave() {
       toast.error('E-posta gönderilemedi')
     }
     setSendingTest(false)
+  }
+
+  async function handleAddSubscription() {
+    if (!newSubId) return
+    setAddingSubscription(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/azure/subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessToken: session?.access_token,
+          subscriptionId: newSubId.trim(),
+          subscriptionName: newSubName.trim(),
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast.success('Subscription eklendi!')
+        setNewSubId('')
+        setNewSubName('')
+        loadSettings()
+      } else {
+        toast.error(data.error || 'Eklenemedi')
+      }
+    } catch { toast.error('Hata oluştu') }
+    setAddingSubscription(false)
+  }
+
+  async function handleDeleteSubscription(subDbId: string) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch('/api/azure/subscriptions', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: session?.access_token, subscriptionDbId: subDbId }),
+    })
+    if (res.ok) {
+      toast.success('Subscription silindi')
+      loadSettings()
+    } else {
+      toast.error('Silinemedi')
+    }
+  }
+
+  async function handleToggleSubscription(subDbId: string, isActive: boolean) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch('/api/azure/subscriptions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: session?.access_token, subscriptionDbId: subDbId, isActive: !isActive }),
+    })
+    if (res.ok) {
+      toast.success(isActive ? 'Pasif edildi' : 'Aktif edildi')
+      loadSettings()
+    }
   }
 
   return (
@@ -485,10 +532,10 @@ async function handleAzureSave() {
             </div>
           </div>
 
+          {/* Credentials */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h3 className="text-sm font-semibold text-white mb-4">Azure Service Principal Bilgileri</h3>
             {[
-              { label: 'Subscription ID', key: 'subscriptionId', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', type: 'text' },
               { label: 'Tenant ID (Directory ID)', key: 'tenantId', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', type: 'text' },
               { label: 'Client ID (Application ID)', key: 'clientId', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', type: 'text' },
               { label: 'Client Secret', key: 'clientSecret', placeholder: '••••••••••••••••••••••••••••••••', type: 'password' },
@@ -498,10 +545,10 @@ async function handleAzureSave() {
                 <input
                   type={field.type}
                   value={azureForm[field.key as keyof typeof azureForm]}
-                  onChange={e => setAzureForm({...azureForm, [field.key]: e.target.value})}
+                  onChange={e => setAzureForm({ ...azureForm, [field.key]: e.target.value })}
                   onFocus={() => {
                     if (field.key === 'clientSecret' && azureForm.clientSecret === '••••••••••••••••') {
-                      setAzureForm({...azureForm, clientSecret: ''})
+                      setAzureForm({ ...azureForm, clientSecret: '' })
                     }
                   }}
                   placeholder={field.placeholder}
@@ -510,46 +557,138 @@ async function handleAzureSave() {
               </div>
             ))}
             <p className="text-xs text-gray-600">Client Secret şifrelenmiş olarak saklanır</p>
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                onClick={handleAzureSave}
-                disabled={saving}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-              >
-                {saving ? <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />Kaydediliyor...</> : 'Kaydet'}
-              </button>
-              <button
-                onClick={handleTestConnection}
-                disabled={testing || !azureForm.subscriptionId}
-                className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 disabled:opacity-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-              >
-                {testing && <div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />}
-                Bağlantıyı Test Et
-              </button>
+            <button
+              onClick={handleAzureSave}
+              disabled={saving}
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            >
+              {saving ? <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />Kaydediliyor...</> : 'Credentials Kaydet'}
+            </button>
+          </div>
+
+          {/* Subscription Yönetimi */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-semibold text-white">Azure Subscriptions</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Birden fazla subscription ekleyebilirsiniz</p>
+              </div>
+              <span className="text-xs bg-blue-900/30 text-blue-400 border border-blue-800/30 px-2 py-0.5 rounded-full">
+                {subscriptions.length} subscription
+              </span>
+            </div>
+
+            {/* Mevcut Subscriptionlar */}
+            <div className="space-y-2 mb-6">
+              {subscriptions.length === 0 ? (
+                <div className="bg-gray-800/50 rounded-xl p-4 text-center">
+                  <p className="text-xs text-gray-500">Henüz subscription eklenmemiş</p>
+                </div>
+              ) : (
+                subscriptions.map(sub => (
+                  <div key={sub.id} className="flex items-center justify-between bg-gray-800/50 rounded-xl p-3 border border-gray-700/30">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sub.is_active ? 'bg-green-500' : 'bg-gray-500'}`} />
+                      <div>
+                        <p className="text-sm text-white font-medium">{sub.subscription_name}</p>
+                        <p className="text-xs text-gray-500 font-mono">{sub.subscription_id}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleToggleSubscription(sub.id, sub.is_active)}
+                        className={`text-xs px-2 py-1 rounded-lg border transition-colors ${
+                          sub.is_active
+                            ? 'bg-yellow-900/20 text-yellow-400 border-yellow-800/30 hover:bg-yellow-900/40'
+                            : 'bg-green-900/20 text-green-400 border-green-800/30 hover:bg-green-900/40'
+                        }`}
+                      >
+                        {sub.is_active ? 'Pasif Et' : 'Aktif Et'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSubscription(sub.id)}
+                        className="text-xs bg-red-900/20 text-red-400 border border-red-800/30 px-2 py-1 rounded-lg hover:bg-red-900/40 transition-colors"
+                      >
+                        Sil
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Yeni Subscription Ekle */}
+            <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
+              <h5 className="text-xs font-semibold text-gray-400 mb-3">Yeni Subscription Ekle</h5>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Subscription ID</label>
+                  <input
+                    type="text"
+                    value={newSubId}
+                    onChange={e => setNewSubId(e.target.value)}
+                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">İsim (opsiyonel)</label>
+                  <input
+                    type="text"
+                    value={newSubName}
+                    onChange={e => setNewSubName(e.target.value)}
+                    placeholder="Örn: Production, Development..."
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <button
+                  onClick={handleAddSubscription}
+                  disabled={addingSubscription || !newSubId}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  {addingSubscription ? (
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Doğrulanıyor...</>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Subscription Ekle
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
+          {/* Bağlantı Durumu */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <h3 className="text-sm font-semibold text-white mb-4">Bağlantı Durumu</h3>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-3">
               <div className={`w-3 h-3 rounded-full ${
                 connectionStatus === 'success' ? 'bg-green-500' :
                 connectionStatus === 'error' ? 'bg-red-500' :
-                connectionStatus === 'testing' ? 'bg-blue-500 animate-pulse' :
-                'bg-yellow-500'
+                connectionStatus === 'testing' ? 'bg-blue-500 animate-pulse' : 'bg-yellow-500'
               }`} />
               <span className={`text-sm ${
                 connectionStatus === 'success' ? 'text-green-400' :
                 connectionStatus === 'error' ? 'text-red-400' :
-                connectionStatus === 'testing' ? 'text-blue-400' :
-                'text-yellow-400'
+                connectionStatus === 'testing' ? 'text-blue-400' : 'text-yellow-400'
               }`}>
                 {connectionStatus === 'unknown' ? 'Henüz test edilmedi' : connectionMessage}
               </span>
             </div>
             {subscriptionName && connectionStatus === 'success' && (
-              <p className="text-xs text-gray-500 mt-2">Subscription: <span className="text-gray-300">{subscriptionName}</span></p>
+              <p className="text-xs text-gray-500 mb-3">Subscription: <span className="text-gray-300">{subscriptionName}</span></p>
             )}
+            <button
+              onClick={handleTestConnection}
+              disabled={testing || !azureForm.clientId}
+              className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 disabled:opacity-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            >
+              {testing && <div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />}
+              Bağlantıyı Test Et
+            </button>
           </div>
         </div>
       )}
@@ -563,7 +702,7 @@ async function handleAzureSave() {
             <input
               type="email"
               value={notifForm.email}
-              onChange={e => setNotifForm({...notifForm, email: e.target.value})}
+              onChange={e => setNotifForm({ ...notifForm, email: e.target.value })}
               placeholder="admin@sirketiniz.com"
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
             />
@@ -581,7 +720,7 @@ async function handleAzureSave() {
                   <p className="text-xs text-gray-500">{item.desc}</p>
                 </div>
                 <button
-                  onClick={() => setNotifForm({...notifForm, [item.key]: !notifForm[item.key as keyof typeof notifForm]})}
+                  onClick={() => setNotifForm({ ...notifForm, [item.key]: !notifForm[item.key as keyof typeof notifForm] })}
                   className={`relative w-10 h-5 rounded-full transition-colors ${notifForm[item.key as keyof typeof notifForm] ? 'bg-blue-600' : 'bg-gray-700'}`}
                 >
                   <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${notifForm[item.key as keyof typeof notifForm] ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -594,7 +733,7 @@ async function handleAzureSave() {
             <input
               type="number"
               value={notifForm.costThreshold}
-              onChange={e => setNotifForm({...notifForm, costThreshold: e.target.value})}
+              onChange={e => setNotifForm({ ...notifForm, costThreshold: e.target.value })}
               className="w-48 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
             />
             <p className="text-xs text-gray-600 mt-1">Günlük maliyet bu değeri aşarsa alarm gönderilir</p>
@@ -612,12 +751,16 @@ async function handleAzureSave() {
               disabled={sendingTest || !notifForm.email}
               className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 disabled:opacity-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
             >
-              {sendingTest ? <><div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />Gönderiliyor...</> : <>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Test E-postası Gönder
-              </>}
+              {sendingTest ? (
+                <><div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />Gönderiliyor...</>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Test E-postası Gönder
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -656,7 +799,7 @@ async function handleAzureSave() {
             <h3 className="text-sm font-semibold text-white mb-2">Pro Plana Geç</h3>
             <p className="text-xs text-gray-500 mb-4">Sınırsız kaynak, 1 saatlik tarama ve 90 günlük veri saklama</p>
             <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-              Pro&apos;ya Yükselt — $49/ay
+              Pro&apos;ya Yükselt
             </button>
           </div>
           <div className="bg-red-900/10 border border-red-900/30 rounded-xl p-6">
