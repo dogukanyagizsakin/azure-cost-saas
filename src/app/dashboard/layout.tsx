@@ -8,6 +8,7 @@ import { AIChat } from '@/components/ui/AIChat'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { logActivity, ActivityActions } from '@/lib/activityLogger'
 
 const navItems = [
   {
@@ -198,6 +199,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [])
 
   async function handleLogout() {
+    await logActivity(ActivityActions.LOGOUT)
     await supabase.auth.signOut()
     router.push('/auth/login')
   }

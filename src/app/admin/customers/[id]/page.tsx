@@ -6,6 +6,136 @@ import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
+function ActivityTab({ tenantId }: { tenantId: string }) {
+  const [logs, setLogs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(0)
+
+  useEffect(() => { loadLogs() }, [page])
+
+  async function loadLogs() {
+    const token = localStorage.getItem('admin_token')
+    const res = await fetch(
+      `/api/admin/activity?tenantId=${tenantId}&page=${page}&limit=20`,
+      { headers: { 'x-admin-token': token || '' } }
+    )
+    if (res.ok) {
+      const data = await res.json()
+      setLogs(data.logs)
+      setTotal(data.total)
+    }
+    setLoading(false)
+  }
+
+  const actionLabel: Record<string, { label: string; color: string; icon: string }> = {
+    login: { label: 'Giriş', color: 'text-green-400 bg-green-900/30', icon: '🔑' },
+    logout: { label: 'Çıkış', color: 'text-gray-400 bg-gray-800', icon: '🚪' },
+    scan_started: { label: 'Tarama Başladı', color: 'text-blue-400 bg-blue-900/30', icon: '🔍' },
+    scan_completed: { label: 'Tarama Tamamlandı', color: 'text-blue-400 bg-blue-900/30', icon: '✅' },
+    recommendation_applied: { label: 'Öneri Uygulandı', color: 'text-emerald-400 bg-emerald-900/30', icon: '💡' },
+    recommendation_dismissed: { label: 'Öneri Reddedildi', color: 'text-yellow-400 bg-yellow-900/30', icon: '❌' },
+    azure_connected: { label: 'Azure Bağlandı', color: 'text-blue-400 bg-blue-900/30', icon: '☁️' },
+    subscription_added: { label: 'Subscription Eklendi', color: 'text-purple-400 bg-purple-900/30', icon: '➕' },
+    subscription_removed: { label: 'Subscription Silindi', color: 'text-red-400 bg-red-900/30', icon: '➖' },
+    settings_updated: { label: 'Ayarlar Güncellendi', color: 'text-gray-400 bg-gray-800', icon: '⚙️' },
+    report_exported: { label: 'Rapor İndirildi', color: 'text-green-400 bg-green-900/30', icon: '📊' },
+    budget_updated: { label: 'Bütçe Güncellendi', color: 'text-yellow-400 bg-yellow-900/30', icon: '💰' },
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4 animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gray-800 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 bg-gray-800 rounded w-32" />
+                <div className="h-3 bg-gray-800 rounded w-48" />
+              </div>
+              <div className="h-3 bg-gray-800 rounded w-24" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (logs.length === 0) {
+    return (
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
+        <p className="text-gray-500 text-sm">Henüz aktivite kaydı yok</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs text-gray-500">{total} aktivite kaydı</p>
+      </div>
+      {logs.map((log) => {
+        const config = actionLabel[log.action] || { label: log.action, color: 'text-gray-400 bg-gray-800', icon: '📝' }
+        return (
+          <div key={log.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-colors">
+            <div className="flex items-center gap-3">
+              <span className="text-xl flex-shrink-0">{config.icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${config.color}`}>
+                    {config.label}
+                  </span>
+                  <span className="text-xs text-gray-500 truncate">{log.user_email}</span>
+                </div>
+                {log.details && Object.keys(log.details).length > 0 && (
+                  <p className="text-xs text-gray-600 truncate">
+                    {Object.entries(log.details).map(([k, v]) => `${k}: ${v}`).join(' · ')}
+                  </p>
+                )}
+              </div>
+              <div className="text-right flex-shrink-0">
+                <p className="text-xs text-gray-500">
+                  {new Date(log.created_at).toLocaleDateString('tr-TR', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                  })}
+                </p>
+                {log.ip_address && log.ip_address !== 'unknown' && (
+                  <p className="text-xs text-gray-700">{log.ip_address}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })}
+
+      {total > 20 && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-xs text-gray-500">
+            {page * 20 + 1} - {Math.min((page + 1) * 20, total)} / {total}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-40 text-gray-300 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              ← Önceki
+            </button>
+            <button
+              onClick={() => setPage(p => p + 1)}
+              disabled={(page + 1) * 20 >= total}
+              className="text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-40 text-gray-300 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Sonraki →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function CustomerDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -264,12 +394,14 @@ export default function CustomerDetailPage() {
             </div>
           </motion.div>
 
+          {/* Tabs */}
           <div className="flex gap-2 mb-6 flex-wrap">
             {[
               { key: 'overview', label: 'Genel Bakış' },
               { key: 'resources', label: `Kaynaklar (${stats.resourceCount})` },
               { key: 'recommendations', label: `Öneriler (${stats.openRecs})` },
               { key: 'scans', label: `Taramalar (${stats.scanCount})` },
+              { key: 'activity', label: 'Aktivite Logu' },
             ].map(tab => (
               <button
                 key={tab.key}
@@ -283,6 +415,7 @@ export default function CustomerDetailPage() {
             ))}
           </div>
 
+          {/* Genel Bakış */}
           {activeTab === 'overview' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -321,7 +454,7 @@ export default function CustomerDetailPage() {
                         onClick={() => handleUpdatePlan('pro')}
                         className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors"
                       >
-                        Pro'ya Geç
+                        Pro&apos;ya Geç
                       </button>
                     )}
                     {tenant?.plan === 'pro' && (
@@ -329,7 +462,7 @@ export default function CustomerDetailPage() {
                         onClick={() => handleUpdatePlan('free')}
                         className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors"
                       >
-                        Free'ye Düşür
+                        Free&apos;ye Düşür
                       </button>
                     )}
                   </div>
@@ -377,6 +510,7 @@ export default function CustomerDetailPage() {
             </motion.div>
           )}
 
+          {/* Kaynaklar */}
           {activeTab === 'resources' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {resources?.length === 0 ? (
@@ -414,6 +548,7 @@ export default function CustomerDetailPage() {
             </motion.div>
           )}
 
+          {/* Öneriler */}
           {activeTab === 'recommendations' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
               {recommendations?.length === 0 ? (
@@ -452,6 +587,7 @@ export default function CustomerDetailPage() {
             </motion.div>
           )}
 
+          {/* Taramalar */}
           {activeTab === 'scans' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {scanLogs?.length === 0 ? (
@@ -499,6 +635,13 @@ export default function CustomerDetailPage() {
                   </table>
                 </div>
               )}
+            </motion.div>
+          )}
+
+          {/* Aktivite Logu */}
+          {activeTab === 'activity' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <ActivityTab tenantId={tenantId} />
             </motion.div>
           )}
         </main>

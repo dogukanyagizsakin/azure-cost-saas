@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { logActivity, ActivityActions } from '@/lib/activityLogger'
 
 function BudgetTab() {
   const [monthlyBudget, setMonthlyBudget] = useState('')
@@ -31,6 +32,7 @@ function BudgetTab() {
     })
     const data = await res.json()
     if (data.success) {
+      await logActivity(ActivityActions.SETTINGS_UPDATED, { section: 'azure_credentials' })
       toast.success('Bütçe ayarları kaydedildi!')
     } else {
       toast.error('Hata: ' + data.error)

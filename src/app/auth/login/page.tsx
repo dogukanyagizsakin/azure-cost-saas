@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { logActivity, ActivityActions } from '@/lib/activityLogger'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -84,6 +85,7 @@ export default function LoginPage() {
           setEmailLoading(false)
           return
         }
+        await logActivity(ActivityActions.LOGIN, { method: 'email' })
         window.location.href = '/dashboard'
       }
     } catch {

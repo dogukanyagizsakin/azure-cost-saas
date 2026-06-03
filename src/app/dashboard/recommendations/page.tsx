@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { Skeleton, RecommendationSkeleton } from '@/components/ui/Skeleton'
+import { logActivity, ActivityActions } from '@/lib/activityLogger'
 
 type Recommendation = {
   id: string
@@ -97,7 +98,16 @@ export default function RecommendationsPage() {
     else if (status === 'dismissed') toast.info('Öneri reddedildi')
     else toast.success('Öneri yeniden açıldı')
   }
-
+if (status === 'applied') {
+  await logActivity(ActivityActions.RECOMMENDATION_APPLIED, {
+    recommendationId: id,
+    title: recommendations.find(r => r.id === id)?.title,
+  })
+} else if (status === 'dismissed') {
+  await logActivity(ActivityActions.RECOMMENDATION_DISMISSED, {
+    recommendationId: id,
+  })
+}
   const filtered = recommendations.filter(r =>
     filterStatus === 'all' ? true : r.status === filterStatus
   )

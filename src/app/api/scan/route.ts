@@ -413,7 +413,18 @@ for (let i = 0; i < resources.length; i += batchSize) {
       } catch (emailErr) {
         console.log('E-posta gönderilemedi:', emailErr)
       }
-
+// Tarama tamamlandı logu
+      await adminSupabase.from('activity_logs').insert({
+        tenant_id: tenant.id,
+        user_id: user.id,
+        user_email: user.email,
+        action: 'scan_completed',
+        details: {
+          resourcesScanned: resources.length,
+          recommendationsFound,
+          subscriptionsScanned: subList.length,
+        },
+      })
       return NextResponse.json({
         success: true,
         resourcesScanned: resources.length,
