@@ -145,13 +145,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       }
 
-// Onboarding kontrolü
-const onboardingRes = await fetch(`/api/onboarding?accessToken=${session.access_token}`)
-if (onboardingRes.ok) {
-  const onboardingData = await onboardingRes.json()
-  if (!onboardingData.onboardingCompleted) {
-    window.location.href = '/dashboard/onboarding'
-    return
+// Onboarding kontrolü — onboarding sayfasındaysa atlat
+if (!window.location.pathname.includes('/dashboard/onboarding')) {
+  const onboardingRes = await fetch(`/api/onboarding?accessToken=${session.access_token}`)
+  if (onboardingRes.ok) {
+    const onboardingData = await onboardingRes.json()
+    if (!onboardingData.onboardingCompleted) {
+      window.location.href = '/dashboard/onboarding'
+      return
+    }
   }
 }
       const { data: userData } = await supabase
