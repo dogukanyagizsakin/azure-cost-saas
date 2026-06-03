@@ -61,8 +61,7 @@ const navItems = [
     activeBg: 'bg-green-500/20',
     border: 'border-green-500/30',
   },
-
-{
+  {
     href: '/dashboard/finops',
     label: 'FinOps Skoru',
     icon: (
@@ -75,22 +74,19 @@ const navItems = [
     activeBg: 'bg-cyan-500/20',
     border: 'border-cyan-500/30',
   },
-
-
-{
-  href: '/dashboard/savings',
-  label: 'Tasarruf Planı',
-  icon: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  color: 'text-emerald-400',
-  bg: 'bg-emerald-500/10',
-  activeBg: 'bg-emerald-500/20',
-  border: 'border-emerald-500/30',
-},
-
+  {
+    href: '/dashboard/savings',
+    label: 'Tasarruf Planı',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    activeBg: 'bg-emerald-500/20',
+    border: 'border-emerald-500/30',
+  },
   {
     href: '/dashboard/settings',
     label: 'Ayarlar',
@@ -116,6 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [scanning, setScanning] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [announcements, setAnnouncements] = useState<any[]>([])
+  const [planInfo, setPlanInfo] = useState<any>(null)
 
   useEffect(() => {
     async function loadUser() {
@@ -124,6 +121,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       setUser(session.user)
 
+      // Plan kontrolü
+      const planRes = await fetch('/api/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: session.access_token }),
+      })
+      if (planRes.ok) {
+        const planData = await planRes.json()
+        setPlanInfo(planData)
+        if (planData.isTrialExpired) {
+          window.location.href = '/dashboard/trial-expired'
+          return
+        }
+      }
+
       const { data: userData } = await supabase
         .from('users')
         .select('tenant_id, role')
@@ -131,30 +143,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .single()
 
       if (!userData) return
-
-// Plan kontrolü
-const [planInfo, setPlanInfo] = useState<any>(null)
-
-useEffect(() => {
-  async function checkPlan() {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-
-    const res = await fetch('/api/plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken: session.access_token }),
-    })
-    if (res.ok) {
-      const data = await res.json()
-      setPlanInfo(data)
-      if (data.isTrialExpired) {
-        window.location.href = '/dashboard/trial-expired'
-      }
-    }
-  }
-  checkPlan()
-}, [])
 
       const { data: tenant } = await supabase
         .from('tenants')
@@ -182,22 +170,21 @@ useEffect(() => {
     }
     loadUser()
   }, [router])
+
   useEffect(() => {
-  async function loadAnnouncements() {
-    try {
-      const res = await fetch('/api/announcements')
-
-      if (res.ok) {
-        const data = await res.json()
-        setAnnouncements(data.announcements || [])
+    async function loadAnnouncements() {
+      try {
+        const res = await fetch('/api/announcements')
+        if (res.ok) {
+          const data = await res.json()
+          setAnnouncements(data.announcements || [])
+        }
+      } catch (error) {
+        console.error('Announcement load error:', error)
       }
-    } catch (error) {
-      console.error('Announcement load error:', error)
     }
-  }
-
-  loadAnnouncements()
-}, [])
+    loadAnnouncements()
+  }, [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -254,10 +241,7 @@ useEffect(() => {
               </div>
             )}
             {sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="text-gray-600 hover:text-gray-400 transition-colors"
-              >
+              <button onClick={() => setSidebarOpen(false)} className="text-gray-600 hover:text-gray-400 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                 </svg>
@@ -265,10 +249,7 @@ useEffect(() => {
             )}
           </div>
           {!sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="absolute -right-3 top-5 w-6 h-6 bg-gray-800 border border-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white z-10"
-            >
+            <button onClick={() => setSidebarOpen(true)} className="absolute -right-3 top-5 w-6 h-6 bg-gray-800 border border-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white z-10">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
               </svg>
@@ -281,18 +262,10 @@ useEffect(() => {
           <div className="px-3 pt-3">
             <div className={[
               'flex items-center gap-2 px-3 py-2 rounded-lg',
-              isAzureConnected
-                ? 'bg-green-900/20 border border-green-800/30'
-                : 'bg-yellow-900/20 border border-yellow-800/30'
+              isAzureConnected ? 'bg-green-900/20 border border-green-800/30' : 'bg-yellow-900/20 border border-yellow-800/30'
             ].join(' ')}>
-              <div className={[
-                'w-1.5 h-1.5 rounded-full flex-shrink-0',
-                isAzureConnected ? 'bg-green-500' : 'bg-yellow-500'
-              ].join(' ')} />
-              <span className={[
-                'text-xs font-medium',
-                isAzureConnected ? 'text-green-400' : 'text-yellow-400'
-              ].join(' ')}>
+              <div className={['w-1.5 h-1.5 rounded-full flex-shrink-0', isAzureConnected ? 'bg-green-500' : 'bg-yellow-500'].join(' ')} />
+              <span className={['text-xs font-medium', isAzureConnected ? 'text-green-400' : 'text-yellow-400'].join(' ')}>
                 {isAzureConnected ? 'Azure Bağlı' : 'Azure Bağlı Değil'}
               </span>
             </div>
@@ -320,7 +293,6 @@ useEffect(() => {
           {sidebarOpen && (
             <p className="text-xs text-gray-600 uppercase tracking-wider px-2 mb-2">Menü</p>
           )}
-
           {navItems.map(item => {
             const isActive = pathname === item.href
             return (
@@ -335,25 +307,17 @@ useEffect(() => {
                     : 'text-gray-400 hover:text-white hover:bg-gray-800/70'
                 ].join(' ')}
               >
-                <div className={[
-                  'flex-shrink-0 p-1.5 rounded-lg transition-colors',
-                  item.color,
-                  isActive ? item.bg : ''
-                ].join(' ')}>
+                <div className={['flex-shrink-0 p-1.5 rounded-lg transition-colors', item.color, isActive ? item.bg : ''].join(' ')}>
                   {item.icon}
                 </div>
                 {sidebarOpen && (
                   <>
                     <span className="text-sm font-medium">{item.label}</span>
                     {item.href === '/dashboard/recommendations' && stats.recommendations > 0 && (
-                      <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full">
-                        {stats.recommendations}
-                      </span>
+                      <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full">{stats.recommendations}</span>
                     )}
                     {item.href === '/dashboard/resources' && stats.resources > 0 && (
-                      <span className="ml-auto text-xs bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded-full">
-                        {stats.resources}
-                      </span>
+                      <span className="ml-auto text-xs bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded-full">{stats.resources}</span>
                     )}
                   </>
                 )}
@@ -370,7 +334,6 @@ useEffect(() => {
             <p className="text-xs text-gray-600 uppercase tracking-wider px-2 mb-2">Hızlı Erişim</p>
           )}
 
-          {/* Hızlı Tara */}
           <button
             onClick={handleQuickScan}
             disabled={scanning || !isAzureConnected}
@@ -391,7 +354,6 @@ useEffect(() => {
             )}
           </button>
 
-          {/* Destek */}
           <button
             onClick={() => { window.location.href = 'mailto:info@unifytech.com.tr' }}
             title={!sidebarOpen ? 'Destek' : undefined}
@@ -402,47 +364,40 @@ useEffect(() => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            {sidebarOpen && (
-              <span className="text-sm font-medium">Destek</span>
-            )}
+            {sidebarOpen && <span className="text-sm font-medium">Destek</span>}
           </button>
-
         </nav>
-{/* Plan Göstergesi */}
-{sidebarOpen && planInfo && (
-  <div className="px-3 pb-2">
-    {planInfo.isPro ? (
-      <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-800/30 rounded-xl">
-        <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        <span className="text-xs font-semibold text-blue-400">Pro Plan</span>
-      </div>
-    ) : (
-      <Link href="/dashboard/upgrade" className="block">
-        <div className="px-3 py-2 bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-800/30 rounded-xl hover:border-yellow-700/50 transition-colors">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-yellow-400">Free Plan</span>
-            <span className="text-xs text-yellow-400 font-bold">{planInfo.daysLeft} gün</span>
+
+        {/* Plan Göstergesi */}
+        {sidebarOpen && planInfo && (
+          <div className="px-3 pb-2">
+            {planInfo.isPro ? (
+              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-800/30 rounded-xl">
+                <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span className="text-xs font-semibold text-blue-400">Pro Plan</span>
+              </div>
+            ) : (
+              <Link href="/dashboard/upgrade" className="block">
+                <div className="px-3 py-2 bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-800/30 rounded-xl hover:border-yellow-700/50 transition-colors">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-yellow-400">Free Plan</span>
+                    <span className="text-xs text-yellow-400 font-bold">{planInfo.daysLeft} gün</span>
+                  </div>
+                  <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${Math.max(0, (planInfo.daysLeft / 7) * 100)}%` }} />
+                  </div>
+                  <p className="text-xs text-yellow-600 mt-1.5">Pro'ya geç →</p>
+                </div>
+              </Link>
+            )}
           </div>
-          <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-yellow-500 rounded-full"
-              style={{ width: `${Math.max(0, (planInfo.daysLeft / 7) * 100)}%` }}
-            />
-          </div>
-          <p className="text-xs text-yellow-600 mt-1.5">Pro'ya geç →</p>
-        </div>
-      </Link>
-    )}
-  </div>
-)}
+        )}
+
         {/* Kullanıcı Profili */}
         <div className="p-3 border-t border-gray-800">
-          <div className={[
-            'flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-800/70 transition-colors cursor-pointer group',
-            !sidebarOpen ? 'justify-center' : ''
-          ].join(' ')}>
+          <div className={['flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-800/70 transition-colors cursor-pointer group', !sidebarOpen ? 'justify-center' : ''].join(' ')}>
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               {userInitial}
             </div>
@@ -452,11 +407,7 @@ useEffect(() => {
                   <p className="text-xs font-medium text-white truncate">{userName}</p>
                   <p className="text-xs text-gray-500 truncate">{userEmail}</p>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  title="Çıkış Yap"
-                  className="text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                >
+                <button onClick={handleLogout} title="Çıkış Yap" className="text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
@@ -465,11 +416,7 @@ useEffect(() => {
             )}
           </div>
           {!sidebarOpen && (
-            <button
-              onClick={handleLogout}
-              title="Çıkış Yap"
-              className="w-full flex items-center justify-center p-2 mt-1 rounded-xl text-gray-600 hover:text-red-400 hover:bg-gray-800/70 transition-colors"
-            >
+            <button onClick={handleLogout} title="Çıkış Yap" className="w-full flex items-center justify-center p-2 mt-1 rounded-xl text-gray-600 hover:text-red-400 hover:bg-gray-800/70 transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
@@ -480,8 +427,6 @@ useEffect(() => {
 
       {/* Ana İçerik */}
       <div className="flex-1 flex flex-col overflow-hidden">
-
-        {/* Topbar */}
         <header className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6 flex-shrink-0">
           <div className="flex items-center gap-3">
             <h1 className="text-sm font-semibold text-white">
@@ -495,10 +440,7 @@ useEffect(() => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               {stats.recommendations > 0 && (
-                <span
-                  className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-xs flex items-center justify-center text-white font-bold"
-                  style={{ fontSize: '9px' }}
-                >
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-xs flex items-center justify-center text-white font-bold" style={{ fontSize: '9px' }}>
                   {stats.recommendations}
                 </span>
               )}
@@ -506,24 +448,22 @@ useEffect(() => {
           </div>
         </header>
 
-        {/* Sayfa İçeriği */}
-
-{/* Duyuru Banner */}
-{announcements.length > 0 && announcements.map((a: any) => {
-  const colors: Record<string, string> = {
-    info: 'bg-blue-900/30 border-blue-800/50 text-blue-300',
-    warning: 'bg-yellow-900/30 border-yellow-800/50 text-yellow-300',
-    success: 'bg-green-900/30 border-green-800/50 text-green-300',
-    error: 'bg-red-900/30 border-red-800/50 text-red-300',
-  }
-  const icons: Record<string, string> = { info: 'ℹ️', warning: '⚠️', success: '✅', error: '🚨' }
-  return (
-    <div key={a.id} className={`px-6 py-2.5 border-b flex items-center gap-3 ${colors[a.type]}`}>
-      <span className="text-sm flex-shrink-0">{icons[a.type]}</span>
-      <p className="text-xs font-medium flex-1">{a.title} — {a.message}</p>
-    </div>
-  )
-})}
+        {/* Duyuru Banner */}
+        {announcements.length > 0 && announcements.map((a: any) => {
+          const colors: Record<string, string> = {
+            info: 'bg-blue-900/30 border-blue-800/50 text-blue-300',
+            warning: 'bg-yellow-900/30 border-yellow-800/50 text-yellow-300',
+            success: 'bg-green-900/30 border-green-800/50 text-green-300',
+            error: 'bg-red-900/30 border-red-800/50 text-red-300',
+          }
+          const icons: Record<string, string> = { info: 'ℹ️', warning: '⚠️', success: '✅', error: '🚨' }
+          return (
+            <div key={a.id} className={`px-6 py-2.5 border-b flex items-center gap-3 ${colors[a.type]}`}>
+              <span className="text-sm flex-shrink-0">{icons[a.type]}</span>
+              <p className="text-xs font-medium flex-1">{a.title} — {a.message}</p>
+            </div>
+          )
+        })}
 
         <main className="flex-1 overflow-y-auto">
           {children}
