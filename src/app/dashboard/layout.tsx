@@ -116,102 +116,95 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [planInfo, setPlanInfo] = useState<any>(null)
 
-  useEffect(() => {
-    // Session dinleyici
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        router.push('/auth/login')
+useEffect(() => {
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT' || !session) {
+      router.push('/auth/login')
+    }
+  })
+
+  async function loadUser() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { router.push('/auth/login'); return }
+
+    setUser(session.user)
+
+    // Plan ve Onboarding kontrollerini paralel yap
+    try {
+      const [planRes, onboardingRes] = await Promise.all([
+        fetch('/api/plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken: session.access_token }),
+        }),
+        window.location.pathname.includes('/dashboard/onboarding')
+          ? Promise.resolve(null)
+          : fetch(`/api/onboarding?accessToken=${session.access_token}`)
+      ])
+
+      if (planRes.ok) {
+        const planData = await planRes.json()
+        setPlanInfo(planData)
+        if (planData.isTrialExpired) {
+          window.location.href = '/dashboard/trial-expired'
+          return
+        }
       }
+
+      if (onboardingRes && onboardingRes.ok) {
+        const onboardingData = await onboardingRes.json()
+        if (!onboardingData.onboardingCompleted) {
+          window.location.href = '/dashboard/onboarding'
+          return
+        }
+      }
+    } catch {
+      console.log('Plan/onboarding check failed, continuing...')
+    }
+
+    // Kullanıcı verilerini yükle
+    const { data: userData } = await supabase
+      .from('users')
+      .select('tenant_id, role')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!userData) return
+
+    const { data: subs } = await supabase
+  .from('azure_subscriptions')
+  .select('id')
+  .eq('tenant_id', userData.tenant_id)
+  .eq('is_active', true)
+  .limit(1)
+
+setIsAzureConnected(
+  !!tenant?.azure_subscription_id ||
+  !!tenant?.azure_client_id ||
+  (subs && subs.length > 0)
+)
+
+    const { data: resources } = await supabase
+      .from('resources')
+      .select('id')
+      .eq('tenant_id', userData.tenant_id)
+
+    const { data: recs } = await supabase
+      .from('recommendations')
+      .select('id')
+      .eq('tenant_id', userData.tenant_id)
+      .eq('status', 'open')
+
+    setStats({
+      resources: resources?.length || 0,
+      recommendations: recs?.length || 0,
     })
-
-    async function loadUser() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/auth/login'); return }
-
-      setUser(session.user)
-
-      // Plan ve Onboarding kontrollerini paralel yap
-const [planRes, onboardingRes] = await Promise.all([
-  fetch('/api/plan', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accessToken: session.access_token }),
-  }),
-  window.location.pathname.includes('/dashboard/onboarding')
-    ? Promise.resolve(null)
-    : fetch(`/api/onboarding?accessToken=${session.access_token}`)
-])
-
-if (planRes.ok) {
-  const planData = await planRes.json()
-  setPlanInfo(planData)
-  if (planData.isTrialExpired) {
-    window.location.href = '/dashboard/trial-expired'
-    return
   }
-}
 
-if (onboardingRes && onboardingRes.ok) {
-  const onboardingData = await onboardingRes.json()
-  if (!onboardingData.onboardingCompleted) {
-    window.location.href = '/dashboard/onboarding'
-    return
-  }
-}
+  loadUser()
 
-// Onboarding kontrolü — onboarding sayfasındaysa atlat
-if (!window.location.pathname.includes('/dashboard/onboarding')) {
-  try {
-    const onboardingRes = await fetch(`/api/onboarding?accessToken=${session.access_token}`)
-    if (onboardingRes.ok) {
-      const onboardingData = await onboardingRes.json()
-      if (!onboardingData.onboardingCompleted) {
-        window.location.href = '/dashboard/onboarding'
-        return
-      }
-    }
-  } catch {
-    // Onboarding kontrolü başarısız olsa da devam et
-    console.log('Onboarding check failed, continuing...')
-  }
-}
-      const { data: userData } = await supabase
-        .from('users')
-        .select('tenant_id, role')
-        .eq('id', session.user.id)
-        .single()
-
-      if (!userData) return
-
-      const { data: tenant } = await supabase
-        .from('tenants')
-        .select('azure_subscription_id')
-        .eq('id', userData.tenant_id)
-        .single()
-
-      setIsAzureConnected(!!tenant?.azure_subscription_id)
-
-      const { data: resources } = await supabase
-        .from('resources')
-        .select('id')
-        .eq('tenant_id', userData.tenant_id)
-
-      const { data: recs } = await supabase
-        .from('recommendations')
-        .select('id')
-        .eq('tenant_id', userData.tenant_id)
-        .eq('status', 'open')
-
-      setStats({
-        resources: resources?.length || 0,
-        recommendations: recs?.length || 0,
-      })
-    }
-
-    loadUser()
-
-    return () => subscription.unsubscribe()
-  }, [router])
+  return () => subscription.unsubscribe()
+}, [router])
 
   useEffect(() => {
     async function loadAnnouncements() {
