@@ -1,5 +1,5 @@
 'use client'
-
+import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { useState, useEffect, useRef } from 'react'
 import { motion, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { toast } from 'sonner'
