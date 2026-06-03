@@ -226,8 +226,8 @@ export default function DashboardPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <div>
-            <p className="text-sm text-yellow-300 font-medium">Tahmini maliyet gösterilmektedir.</p>
-            <p className="text-xs text-yellow-400/70 mt-0.5">Bu subscription türünde Cost Management API desteklenmiyor. Maliyet verileri Azure Retail Prices API üzerinden tahmin edilmektedir. Pay-As-You-Go, Enterprise Agreement(EA), Microsoft Customer Agreement (MCA) ve Cloud Solution Provider (CSP) türündeki abonelikler için gerçek fiyatlar gözükmektedir. </p>
+            <p className="text-sm text-yellow-300 font-medium">Bilgilendirme : Tahmini maliyet gösterilmektedir.</p>
+            <p className="text-xs text-yellow-400/70 mt-0.5">Bu subscription türünde Cost Management API desteklenmiyor. Maliyet verileri Azure Retail Prices API üzerinden tahmin edilmektedir. Pay-As-You-Go, Enterprise Agreement (EA), Microsoft Customer Agreement (MCA) ve Cloud Solution Provider (CSP) türündeki abonelikler için gerçek fiyatlar görüntülenebilmektedir. Ayrıntılı bilgi için iletişime geçebilirsiniz. </p>
           </div>
         </motion.div>
       )}
