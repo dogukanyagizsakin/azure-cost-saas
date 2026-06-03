@@ -23,7 +23,7 @@ const typeLabel: Record<string, string> = {
   orphan_ip: '🌐 Orphan IP',
   overprovisioned: '📐 Aşırı Boyutlu',
   unused_resource: '🗑️ Kullanılmayan Kaynak',
-  rightsizing: '📐 Rightsizing',
+  rightsizing: '📏 Rightsizing',
   reserved_instance: '📅 Reserved Instance',
   schedule: '⏰ Zamanlama',
   storage_tier: '📦 Depolama Katmanı',
@@ -91,6 +91,17 @@ export default function RecommendationsPage() {
       .update({ status })
       .eq('id', id)
 
+    if (status === 'applied') {
+      await logActivity(ActivityActions.RECOMMENDATION_APPLIED, {
+        recommendationId: id,
+        title: recommendations.find(r => r.id === id)?.title,
+      })
+    } else if (status === 'dismissed') {
+      await logActivity(ActivityActions.RECOMMENDATION_DISMISSED, {
+        recommendationId: id,
+      })
+    }
+
     await loadRecommendations()
     setApplying(null)
 
@@ -98,16 +109,7 @@ export default function RecommendationsPage() {
     else if (status === 'dismissed') toast.info('Öneri reddedildi')
     else toast.success('Öneri yeniden açıldı')
   }
-if (status === 'applied') {
-  await logActivity(ActivityActions.RECOMMENDATION_APPLIED, {
-    recommendationId: id,
-    title: recommendations.find(r => r.id === id)?.title,
-  })
-} else if (status === 'dismissed') {
-  await logActivity(ActivityActions.RECOMMENDATION_DISMISSED, {
-    recommendationId: id,
-  })
-}
+
   const filtered = recommendations.filter(r =>
     filterStatus === 'all' ? true : r.status === filterStatus
   )
@@ -222,7 +224,9 @@ if (status === 'applied') {
                     {r.resources && (
                       <p className="text-xs text-gray-600">
                         <span className="text-gray-500">{r.resources.name}</span>
-                        {r.resources.resource_group && <span> · {r.resources.resource_group}</span>}
+                        {r.resources.resource_group && (
+                          <span> · {r.resources.resource_group}</span>
+                        )}
                       </p>
                     )}
                   </div>
