@@ -97,14 +97,6 @@ export default function AdminDashboardPage() {
             </div>
             <span className="text-sm font-medium">Sistem Sağlığı</span>
           </Link>
-          <Link href="/admin/bulk" className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/70 transition-all">
-  <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-400">
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-    </svg>
-  </div>
-  <span className="text-sm font-medium">Toplu İşlemler</span>
-</Link>
 
 <Link href="/admin/announcements" className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/70 transition-all">
   <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-400">
