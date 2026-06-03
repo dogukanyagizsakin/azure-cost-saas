@@ -2,7 +2,21 @@
   "crons": [
     {
       "path": "/api/cron",
-      "schedule": "0 8 * * *"
+      "schedule": "0 */8 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "src/app/api/scan/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/admin/scan-customer/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/admin/bulk-scan/route.ts": {
+      "maxDuration": 300
+    }
+  }
 }

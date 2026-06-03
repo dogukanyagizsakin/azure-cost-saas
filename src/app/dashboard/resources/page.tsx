@@ -37,25 +37,32 @@ const resourceTypeColor = (type: string) => {
   return 'bg-gray-800 text-gray-400'
 }
 
+const PAGE_SIZE = 50
+
 export default function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [hasAzure, setHasAzure] = useState(true)
+  const [page, setPage] = useState(0)
+  const [totalCount, setTotalCount] = useState(0)
+  const [tenantId, setTenantId] = useState<string | null>(null)
 
-  async function loadResources() {
+  async function loadResources(currentPage = 0) {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { setLoading(false); return }
 
-      const { data: userData, error: userError } = await supabase
+      const { data: userData } = await supabase
         .from('users')
         .select('tenant_id')
         .eq('id', session.user.id)
         .single()
 
       if (!userData) { setHasAzure(false); setLoading(false); return }
+
+      setTenantId(userData.tenant_id)
 
       const { data: tenant } = await supabase
         .from('tenants')
@@ -65,13 +72,15 @@ export default function ResourcesPage() {
 
       if (!tenant?.azure_subscription_id) { setHasAzure(false); setLoading(false); return }
 
-      const { data } = await supabase
+      const { data, count } = await supabase
         .from('resources')
-        .select(`*, cost_snapshots (cost_usd)`)
+        .select('*, cost_snapshots(cost_usd)', { count: 'exact' })
         .eq('tenant_id', userData.tenant_id)
         .order('created_at', { ascending: false })
+        .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1)
 
       setResources(data || [])
+      setTotalCount(count || 0)
       setLoading(false)
     } catch (err) {
       console.error('loadResources error:', err)
@@ -80,8 +89,10 @@ export default function ResourcesPage() {
   }
 
   useEffect(() => {
-    loadResources()
+    loadResources(page)
+  }, [page])
 
+  useEffect(() => {
     const channel = supabase
       .channel('resources-changes')
       .on('postgres_changes', {
@@ -89,7 +100,7 @@ export default function ResourcesPage() {
         schema: 'public',
         table: 'resources',
       }, () => {
-        loadResources()
+        loadResources(page)
       })
       .subscribe()
 
@@ -100,7 +111,7 @@ export default function ResourcesPage() {
 
   const filtered = resources.filter(r => {
     const matchSearch = r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.resource_group.toLowerCase().includes(search.toLowerCase())
+      r.resource_group?.toLowerCase().includes(search.toLowerCase())
     const matchType = filterType === 'all' || r.resource_type.includes(filterType)
     return matchSearch && matchType
   })
@@ -154,7 +165,7 @@ export default function ResourcesPage() {
             </svg>
           </div>
           <h2 className="text-lg font-semibold text-white mb-2">Azure Bağlantısı Gerekli</h2>
-          <p className="text-gray-500 text-sm mb-4">Kaynakları görmek için önce Azure subscription'ınızı bağlamanız gerekiyor.</p>
+          <p className="text-gray-500 text-sm mb-4">Kaynakları görmek için önce Azure subscription&apos;ınızı bağlamanız gerekiyor.</p>
           <a href="/dashboard/settings" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors inline-block">
             Ayarlara Git
           </a>
@@ -163,7 +174,7 @@ export default function ResourcesPage() {
     )
   }
 
-  if (resources.length === 0) {
+  if (resources.length === 0 && page === 0) {
     return (
       <div className="p-6">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
@@ -173,9 +184,9 @@ export default function ResourcesPage() {
             </svg>
           </div>
           <h2 className="text-lg font-semibold text-white mb-2">Henüz kaynak yok</h2>
-          <p className="text-gray-500 text-sm mb-4">Dashboard'dan "Şimdi Tara" butonuna tıklayarak Azure kaynaklarınızı tarayın.</p>
+          <p className="text-gray-500 text-sm mb-4">Dashboard&apos;dan &ldquo;Şimdi Tara&rdquo; butonuna tıklayarak Azure kaynaklarınızı tarayın.</p>
           <a href="/dashboard" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors inline-block">
-            Dashboard'a Git
+            Dashboard&apos;a Git
           </a>
         </div>
       </div>
@@ -187,7 +198,7 @@ export default function ResourcesPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Toplam Kaynak</p>
-          <p className="text-2xl font-bold text-white">{resources.length}</p>
+          <p className="text-2xl font-bold text-white">{totalCount}</p>
         </div>
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Toplam Maliyet</p>
@@ -283,6 +294,34 @@ export default function ResourcesPage() {
         {filtered.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-sm">Arama kriterlerine uygun kaynak bulunamadı</p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalCount > PAGE_SIZE && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-800">
+            <p className="text-xs text-gray-500">
+              {page * PAGE_SIZE + 1} - {Math.min((page + 1) * PAGE_SIZE, totalCount)} / {totalCount} kaynak
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-40 text-gray-300 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                ← Önceki
+              </button>
+              <span className="text-xs text-gray-500">
+                Sayfa {page + 1} / {Math.ceil(totalCount / PAGE_SIZE)}
+              </span>
+              <button
+                onClick={() => setPage(p => p + 1)}
+                disabled={(page + 1) * PAGE_SIZE >= totalCount}
+                className="text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-40 text-gray-300 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                Sonraki →
+              </button>
+            </div>
           </div>
         )}
       </div>
