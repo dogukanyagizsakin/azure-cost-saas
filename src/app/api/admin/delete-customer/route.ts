@@ -27,26 +27,32 @@ export async function POST(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Kullanıcıları bul
+    // Önce kullanıcı ID'lerini al
     const { data: users } = await adminSupabase
       .from('users')
       .select('id')
       .eq('tenant_id', tenantId)
 
-    // Tüm verileri sil (sıralı)
+    // Önce Auth kullanıcılarını sil (en kritik adım)
+    for (const user of users || []) {
+      try {
+        await adminSupabase.auth.admin.deleteUser(user.id)
+      } catch (err) {
+        console.error('Auth user delete error:', err)
+      }
+    }
+
+    // Sonra tüm ilişkili verileri sil (sıralı)
+    await adminSupabase.from('activity_logs').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('recommendations').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('cost_snapshots').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('resources').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('scan_logs').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('notification_logs').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('invitations').delete().eq('tenant_id', tenantId)
+    await adminSupabase.from('azure_subscriptions').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('users').delete().eq('tenant_id', tenantId)
     await adminSupabase.from('tenants').delete().eq('id', tenantId)
-
-    // Auth kullanıcılarını sil
-    for (const user of users || []) {
-      await adminSupabase.auth.admin.deleteUser(user.id)
-    }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
