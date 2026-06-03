@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Hesabınız pasif edilmiştir. Lütfen yöneticinizle iletişime geçin.' }, { status: 403 })
       }
 
-      return NextResponse.json({ success: true, existing: true })
+      return NextResponse.json({ success: true, isNew: false })
     }
 
     // Yeni kullanıcı — tenant oluştur
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
     if (userError) return NextResponse.json({ error: userError.message }, { status: 500 })
 
-    return NextResponse.json({ success: true, existing: false })
+    return NextResponse.json({ success: true, isNew: true })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
