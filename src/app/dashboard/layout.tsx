@@ -345,7 +345,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.href}
                 href={item.href}
-                title={!sidebarOpen ? item.label : undefined}
+                title={!sidebarOpen ? t(item.labelKey) : undefined}
                 className={[
                   'flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all duration-150 group relative',
                   isActive
@@ -358,7 +358,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 {sidebarOpen && (
                   <>
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="text-sm font-medium">{t(item.labelKey)}</span>
                     {item.href === '/dashboard/recommendations' && stats.recommendations > 0 && (
                       <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full">{stats.recommendations}</span>
                     )}
@@ -497,8 +497,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6 flex-shrink-0">
           <div className="flex items-center gap-3">
             <h1 className="text-sm font-semibold text-white">
-              {navItems.find(i => i.href === pathname)?.label || 'Dashboard'}
-            </h1>
+  {t(
+    navItems.find(i => i.href === pathname)?.labelKey ||
+    'nav.dashboard'
+  )}
+</h1>
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle /><LanguageSwitcher />
