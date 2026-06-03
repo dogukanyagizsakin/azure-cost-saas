@@ -65,12 +65,24 @@ export default function ResourcesPage() {
       setTenantId(userData.tenant_id)
 
       const { data: tenant } = await supabase
-        .from('tenants')
-        .select('azure_subscription_id')
-        .eq('id', userData.tenant_id)
-        .single()
+  .from('tenants')
+  .select('azure_subscription_id, azure_client_id')
+  .eq('id', userData.tenant_id)
+  .single()
 
-      if (!tenant?.azure_subscription_id) { setHasAzure(false); setLoading(false); return }
+// Subscription tablosuna da bak
+const { data: subscriptions } = await supabase
+  .from('azure_subscriptions')
+  .select('id')
+  .eq('tenant_id', userData.tenant_id)
+  .eq('is_active', true)
+  .limit(1)
+
+const hasAzureConnection = !!tenant?.azure_subscription_id ||
+  !!tenant?.azure_client_id ||
+  (subscriptions && subscriptions.length > 0)
+
+if (!hasAzureConnection) { setHasAzure(false); setLoading(false); return }
 
       const { data, count } = await supabase
         .from('resources')

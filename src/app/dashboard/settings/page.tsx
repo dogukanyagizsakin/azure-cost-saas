@@ -332,6 +332,10 @@ export default function SettingsPage() {
         clientId: tenant.azure_client_id || '',
         clientSecret: tenant.azure_client_secret ? '••••••••••••••••' : '',
       })
+      if (tenant.azure_client_id) {
+    setConnectionStatus('success')
+    setConnectionMessage('Azure credentials mevcut')
+  }
       if (tenant.azure_subscription_id) {
         setConnectionStatus('success')
         setConnectionMessage('Azure bağlantısı mevcut')
