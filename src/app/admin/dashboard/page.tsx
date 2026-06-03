@@ -97,6 +97,23 @@ export default function AdminDashboardPage() {
             </div>
             <span className="text-sm font-medium">Sistem Sağlığı</span>
           </Link>
+          <Link href="/admin/bulk" className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/70 transition-all">
+  <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-400">
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  </div>
+  <span className="text-sm font-medium">Toplu İşlemler</span>
+</Link>
+
+<Link href="/admin/announcements" className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/70 transition-all">
+  <div className="p-1.5 rounded-lg bg-pink-500/10 text-pink-400">
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+    </svg>
+  </div>
+  <span className="text-sm font-medium">Duyurular</span>
+</Link>
         </nav>
 
         <div className="p-3 border-t border-gray-800">
