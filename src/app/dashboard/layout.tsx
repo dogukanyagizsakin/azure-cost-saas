@@ -130,30 +130,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       setUser(session.user)
 
-      // Plan kontrolü
-      const planRes = await fetch('/api/plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: session.access_token }),
-      })
-      if (planRes.ok) {
-        const planData = await planRes.json()
-        setPlanInfo(planData)
-        if (planData.isTrialExpired) {
-          window.location.href = '/dashboard/trial-expired'
-          return
-        }
-      }
+      // Plan ve Onboarding kontrollerini paralel yap
+const [planRes, onboardingRes] = await Promise.all([
+  fetch('/api/plan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accessToken: session.access_token }),
+  }),
+  window.location.pathname.includes('/dashboard/onboarding')
+    ? Promise.resolve(null)
+    : fetch(`/api/onboarding?accessToken=${session.access_token}`)
+])
+
+if (planRes.ok) {
+  const planData = await planRes.json()
+  setPlanInfo(planData)
+  if (planData.isTrialExpired) {
+    window.location.href = '/dashboard/trial-expired'
+    return
+  }
+}
+
+if (onboardingRes && onboardingRes.ok) {
+  const onboardingData = await onboardingRes.json()
+  if (!onboardingData.onboardingCompleted) {
+    window.location.href = '/dashboard/onboarding'
+    return
+  }
+}
 
 // Onboarding kontrolü — onboarding sayfasındaysa atlat
 if (!window.location.pathname.includes('/dashboard/onboarding')) {
-  const onboardingRes = await fetch(`/api/onboarding?accessToken=${session.access_token}`)
-  if (onboardingRes.ok) {
-    const onboardingData = await onboardingRes.json()
-    if (!onboardingData.onboardingCompleted) {
-      window.location.href = '/dashboard/onboarding'
-      return
+  try {
+    const onboardingRes = await fetch(`/api/onboarding?accessToken=${session.access_token}`)
+    if (onboardingRes.ok) {
+      const onboardingData = await onboardingRes.json()
+      if (!onboardingData.onboardingCompleted) {
+        window.location.href = '/dashboard/onboarding'
+        return
+      }
     }
+  } catch {
+    // Onboarding kontrolü başarısız olsa da devam et
+    console.log('Onboarding check failed, continuing...')
   }
 }
       const { data: userData } = await supabase
