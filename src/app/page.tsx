@@ -130,9 +130,9 @@ export default function LandingPage() {
             <a href="#ai">AI Asistan</a>
             <a href="#how">Nasıl Çalışır</a>
             <a href="#pricing">Fiyatlar</a>
-            <Link href="/dashboard">Giriş Yap</Link>
+            <Link href="/auth/login">Giriş Yap</Link>
           </div>
-          <Link href="/dashboard" className="nav-cta">Ücretsiz Başla →</Link>
+          <Link href="/auth/login" className="nav-cta">Ücretsiz Başla →</Link>
         </nav>
 
         {/* HERO */}
@@ -141,7 +141,7 @@ export default function LandingPage() {
           <h1>Azure maliyetlerinizi<br /><span className="accent">akıllıca yönetin</span></h1>
           <p>8 saatte bir otomatik tarama, AI destekli maliyet analizi ve akıllı optimizasyon önerileri ile Azure faturanızı ortalama %40 azaltın.</p>
           <div className="hero-actions">
-            <Link href="/dashboard" className="btn-primary">
+            <Link href="/auth/login" className="btn-primary">
               Ücretsiz Deneyin
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </Link>
@@ -215,7 +215,7 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/dashboard" style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'var(--blue)',color:'#fff',padding:'12px 24px',borderRadius:'10px',fontSize:'14px',fontWeight:'500',textDecoration:'none',marginTop:'32px',transition:'background 0.2s'}}>
+                <Link href="/auth/login" style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'var(--blue)',color:'#fff',padding:'12px 24px',borderRadius:'10px',fontSize:'14px',fontWeight:'500',textDecoration:'none',marginTop:'32px',transition:'background 0.2s'}}>
                   AI Asistanı Deneyin →
                 </Link>
               </div>
@@ -286,7 +286,7 @@ export default function LandingPage() {
                 <li>AI Asistan (günde 20 soru)</li>
                 <li>Google & Microsoft giriş</li>
               </ul>
-              <Link href="/dashboard" className="plan-cta ghost">Ücretsiz Başla</Link>
+              <Link href="/auth/login" className="plan-cta ghost">Ücretsiz Başla</Link>
             </div>
             <div className="pricing-card popular">
               <div className="popular-badge">En Popüler</div>
@@ -301,7 +301,7 @@ export default function LandingPage() {
                 <li>Takım yönetimi (10 kullanıcı)</li>
                 <li>Slack & Teams bildirimleri</li>
               </ul>
-              <Link href="/dashboard" className="plan-cta primary">Pro&apos;ya Geç</Link>
+              <Link href="/auth/login" className="plan-cta primary">Pro&apos;ya Geç</Link>
             </div>
             <div className="pricing-card">
               <div className="plan-name">Enterprise</div>
@@ -324,7 +324,7 @@ export default function LandingPage() {
         <section className="cta-section">
           <h2>Azure faturanızı düşürmeye<br />bugün başlayın</h2>
           <p>Kredi kartı gerekmez. 5 dakikada kurulum. AI destekli analiz ücretsiz.</p>
-          <Link href="/dashboard" className="btn-primary" style={{fontSize:'16px',padding:'16px 40px',display:'inline-flex',alignItems:'center',gap:'8px'}}>
+          <Link href="/auth/login" className="btn-primary" style={{fontSize:'16px',padding:'16px 40px',display:'inline-flex',alignItems:'center',gap:'8px'}}>
             Ücretsiz Hesap Oluştur
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
           </Link>
@@ -337,7 +337,7 @@ export default function LandingPage() {
             <a href="#features">Özellikler</a>
             <a href="#ai">AI Asistan</a>
             <a href="#pricing">Fiyatlar</a>
-            <Link href="/dashboard">Uygulamaya Gir</Link>
+            <Link href="/auth/login">Uygulamaya Gir</Link>
             <a href="mailto:info@unifytech.com.tr">İletişim</a>
           </div>
           <div className="footer-copy">© 2025 UnifyTech Bilgi Sistemleri</div>
