@@ -98,6 +98,7 @@ export default function DashboardPage() {
   const [alertThreshold, setAlertThreshold] = useState(80)
   const [realData, setRealData] = useState<any>(null)
   const [subscriptionName, setSubscriptionName] = useState('')
+  const [costSupported, setCostSupported] = useState(true)
 
   async function loadRealData() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -113,6 +114,7 @@ export default function DashboardPage() {
       const data = await res.json()
       setRealData(data)
       setSubscriptionName(data.subscriptionName || '')
+      setCostSupported(data.costSupported ?? true)
     }
   }
 
@@ -130,7 +132,7 @@ export default function DashboardPage() {
   const tasarrufFirsati = realData?.totalSaving || 0
   const aktifKaynak = realData?.resourceCount || 0
   const tahmin = Math.round(totalMaliyet * 1.15)
-  const costSupported = realData ? (realData.costSupported ?? true) : true
+  
 
   const displayTopResources = realData?.topResources?.map((r: any) => ({
     name: r.name,

@@ -94,7 +94,6 @@ function detectIssues(resource: any, costPerMonth: number) {
       description: 'Bu makinenin kullanım durumu incelenmelidir. Düşük kullanım varsa kapatılabilir.',
       saving: saving(0.3),
     })
-
     if (isTestEnv) {
       issues.push({
         type: 'schedule',
@@ -283,97 +282,114 @@ export async function POST(request: Request) {
       })
 
       const costSupported = costs.length > 0
+
+      // Cost Management desteklenmiyorsa Retail Prices API kullan
+      let estimatedCostMap: Record<string, number> = {}
+      if (!costSupported) {
+        const { calculateEstimatedCosts } = await import('@/lib/azurePricing')
+        estimatedCostMap = await calculateEstimatedCosts(
+          resources.map((r: any) => ({
+            id: r.id,
+            resource_type: r.type,
+            location: r.location || 'eastus',
+            name: r.name,
+          }))
+        )
+      }
+
       let totalCost = 0
       let recommendationsFound = 0
 
-// Kaynakları 10'arlı batch'lere böl
-const batchSize = 10
-for (let i = 0; i < resources.length; i += batchSize) {
-  const batch = resources.slice(i, i + batchSize)
+      // Kaynakları 10'arlı batch'lere böl
+      const batchSize = 10
+      for (let i = 0; i < resources.length; i += batchSize) {
+        const batch = resources.slice(i, i + batchSize)
 
-  await Promise.all(batch.map(async (resource: any) => {
-    const resourceCost = costMap[resource.id?.toLowerCase()] || 0
-    totalCost += resourceCost
+        await Promise.all(batch.map(async (resource: any) => {
+          const resourceCost = costMap[resource.id?.toLowerCase()] ||
+            estimatedCostMap[resource.id] || 0
+          totalCost += resourceCost
 
-    const { data: existing } = await adminSupabase
-      .from('resources')
-      .select('id')
-      .eq('azure_resource_id', resource.id)
-      .eq('tenant_id', tenant.id)
-      .maybeSingle()
+          const { data: existing } = await adminSupabase
+            .from('resources')
+            .select('id')
+            .eq('azure_resource_id', resource.id)
+            .eq('tenant_id', tenant.id)
+            .maybeSingle()
 
-    let resourceId: string
+          let resourceId: string
 
-    if (existing) {
-      resourceId = existing.id
-      await adminSupabase
-        .from('resources')
-        .update({
-          name: resource.name,
-          resource_type: resource.type,
-          resource_group: resource.id?.split('/resourceGroups/')[1]?.split('/')[0] || '',
-          location: resource.location || '',
-          tags: resource.tags || {},
-          last_seen_at: new Date().toISOString(),
-        })
-        .eq('id', resourceId)
-    } else {
-      const { data: newResource } = await adminSupabase
-        .from('resources')
-        .insert({
-          tenant_id: tenant.id,
-          azure_resource_id: resource.id,
-          name: resource.name,
-          resource_type: resource.type,
-          resource_group: resource.id?.split('/resourceGroups/')[1]?.split('/')[0] || '',
-          location: resource.location || '',
-          subscription_id: resource._subscriptionId || tenant.azure_subscription_id,
-          tags: resource.tags || {},
-        })
-        .select()
-        .single()
-      resourceId = newResource?.id
-    }
+          if (existing) {
+            resourceId = existing.id
+            await adminSupabase
+              .from('resources')
+              .update({
+                name: resource.name,
+                resource_type: resource.type,
+                resource_group: resource.id?.split('/resourceGroups/')[1]?.split('/')[0] || '',
+                location: resource.location || '',
+                tags: resource.tags || {},
+                last_seen_at: new Date().toISOString(),
+              })
+              .eq('id', resourceId)
+          } else {
+            const { data: newResource } = await adminSupabase
+              .from('resources')
+              .insert({
+                tenant_id: tenant.id,
+                azure_resource_id: resource.id,
+                name: resource.name,
+                resource_type: resource.type,
+                resource_group: resource.id?.split('/resourceGroups/')[1]?.split('/')[0] || '',
+                location: resource.location || '',
+                subscription_id: resource._subscriptionId || tenant.azure_subscription_id,
+                tags: resource.tags || {},
+              })
+              .select()
+              .single()
+            resourceId = newResource?.id
+          }
 
-    if (resourceId && resourceCost > 0 && costSupported) {
-      const now = new Date()
-      await adminSupabase.from('cost_snapshots').insert({
-        tenant_id: tenant.id,
-        resource_id: resourceId,
-        period_start: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0],
-        period_end: now.toISOString().split('T')[0],
-        cost_usd: resourceCost,
-      })
-    }
+          if (resourceId && resourceCost > 0) {
+            const now = new Date()
+            await adminSupabase.from('cost_snapshots').insert({
+              tenant_id: tenant.id,
+              resource_id: resourceId,
+              period_start: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0],
+              period_end: now.toISOString().split('T')[0],
+              cost_usd: resourceCost,
+            })
+          }
 
-    if (resourceId) {
-      const issues = detectIssues(resource, resourceCost)
-      await Promise.all(issues.map(async (issue) => {
-        const estimatedSaving = resourceCost > 0 ? resourceCost * 0.8 : issue.saving
-        const { data: existingRec } = await adminSupabase
-          .from('recommendations')
-          .select('id')
-          .eq('resource_id', resourceId)
-          .eq('type', issue.type)
-          .eq('status', 'open')
-          .maybeSingle()
+          if (resourceId) {
+            const issues = detectIssues(resource, resourceCost)
+            await Promise.all(issues.map(async (issue) => {
+              const estimatedSaving = resourceCost > 0 ? resourceCost * 0.8 : issue.saving
 
-        if (!existingRec) {
-          await adminSupabase.from('recommendations').insert({
-            tenant_id: tenant.id,
-            resource_id: resourceId,
-            type: issue.type,
-            title: issue.title,
-            description: issue.description,
-            estimated_monthly_saving: estimatedSaving,
-            status: 'open',
-          })
-          recommendationsFound++
-        }
-      }))
-    }
-  }))
-}
+              const { data: existingRec } = await adminSupabase
+                .from('recommendations')
+                .select('id')
+                .eq('resource_id', resourceId)
+                .eq('type', issue.type)
+                .eq('status', 'open')
+                .maybeSingle()
+
+              if (!existingRec) {
+                await adminSupabase.from('recommendations').insert({
+                  tenant_id: tenant.id,
+                  resource_id: resourceId,
+                  type: issue.type,
+                  title: issue.title,
+                  description: issue.description,
+                  estimated_monthly_saving: estimatedSaving,
+                  status: 'open',
+                })
+                recommendationsFound++
+              }
+            }))
+          }
+        }))
+      }
 
       await adminSupabase
         .from('scan_logs')
@@ -384,11 +400,26 @@ for (let i = 0; i < resources.length; i += batchSize) {
           total_cost_usd: totalCost,
           finished_at: new Date().toISOString(),
           error_message: !costSupported
-            ? 'Cost Management API bu subscription türünde desteklenmiyor'
+            ? 'Tahmini maliyet gösteriliyor (Retail Prices API)'
             : null,
         })
         .eq('id', scanLog?.id)
 
+      // Aktivite logu
+      await adminSupabase.from('activity_logs').insert({
+        tenant_id: tenant.id,
+        user_id: user.id,
+        user_email: user.email,
+        action: 'scan_completed',
+        details: {
+          resourcesScanned: resources.length,
+          recommendationsFound,
+          subscriptionsScanned: subList.length,
+          costSupported,
+        },
+      })
+
+      // Bildirim e-postası
       try {
         const { data: users } = await adminSupabase
           .from('users')
@@ -413,18 +444,7 @@ for (let i = 0; i < resources.length; i += batchSize) {
       } catch (emailErr) {
         console.log('E-posta gönderilemedi:', emailErr)
       }
-// Tarama tamamlandı logu
-      await adminSupabase.from('activity_logs').insert({
-        tenant_id: tenant.id,
-        user_id: user.id,
-        user_email: user.email,
-        action: 'scan_completed',
-        details: {
-          resourcesScanned: resources.length,
-          recommendationsFound,
-          subscriptionsScanned: subList.length,
-        },
-      })
+
       return NextResponse.json({
         success: true,
         resourcesScanned: resources.length,

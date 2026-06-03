@@ -91,11 +91,12 @@ export async function POST(request: Request) {
     const totalSaving = recommendations?.reduce((sum, r) =>
       sum + r.estimated_monthly_saving, 0) || 0
 
-    // Cost Management destekleniyor mu kontrol et
-    const hasCostData = resources?.some(r =>
-      r.cost_snapshots?.some((c: any) => Number(c.cost_usd) > 0)
-    ) ?? false
-    const costSupported = hasCostData || (resources?.length === 0)
+   // Son tarama loguna bak — Cost Management destekleniyor mu?
+    const lastScanLog = scanLogs?.[0]
+    const costSupported = lastScanLog
+      ? !lastScanLog.error_message?.includes('Tahmini maliyet') &&
+        !lastScanLog.error_message?.includes('Cost Management API')
+      : true
 
     const lastScan = scanLogs?.[0]
     const lastScanTime = lastScan
