@@ -132,7 +132,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       if (!userData) return
 
+// Plan kontrolü
+const [planInfo, setPlanInfo] = useState<any>(null)
 
+useEffect(() => {
+  async function checkPlan() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const res = await fetch('/api/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: session.access_token }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setPlanInfo(data)
+      if (data.isTrialExpired) {
+        window.location.href = '/dashboard/trial-expired'
+      }
+    }
+  }
+  checkPlan()
+}, [])
 
       const { data: tenant } = await supabase
         .from('tenants')
@@ -386,7 +408,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
 
         </nav>
-
+{/* Plan Göstergesi */}
+{sidebarOpen && planInfo && (
+  <div className="px-3 pb-2">
+    {planInfo.isPro ? (
+      <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-800/30 rounded-xl">
+        <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        <span className="text-xs font-semibold text-blue-400">Pro Plan</span>
+      </div>
+    ) : (
+      <Link href="/dashboard/upgrade" className="block">
+        <div className="px-3 py-2 bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-800/30 rounded-xl hover:border-yellow-700/50 transition-colors">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-semibold text-yellow-400">Free Plan</span>
+            <span className="text-xs text-yellow-400 font-bold">{planInfo.daysLeft} gün</span>
+          </div>
+          <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-yellow-500 rounded-full"
+              style={{ width: `${Math.max(0, (planInfo.daysLeft / 7) * 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-yellow-600 mt-1.5">Pro'ya geç →</p>
+        </div>
+      </Link>
+    )}
+  </div>
+)}
         {/* Kullanıcı Profili */}
         <div className="p-3 border-t border-gray-800">
           <div className={[
