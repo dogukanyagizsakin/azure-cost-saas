@@ -327,7 +327,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
             )
           })}
-
+{/* Pro'ya Geç — sadece free kullanıcılara */}
+{sidebarOpen && planInfo && !planInfo.isPro && (
+  <Link
+    href="/dashboard/upgrade"
+    className={[
+      'flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all duration-150 group relative',
+      pathname === '/dashboard/upgrade'
+        ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+        : 'text-yellow-400 hover:text-yellow-300 hover:bg-yellow-900/20 border border-yellow-800/20'
+    ].join(' ')}
+  >
+    <div className="flex-shrink-0 p-1.5 rounded-lg bg-yellow-500/10 text-yellow-400">
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    </div>
+    <span className="text-sm font-medium">Pro'ya Geç</span>
+    <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full animate-pulse">YENİ</span>
+  </Link>
+)}
           <div className="border-t border-gray-800 my-3" />
 
           {sidebarOpen && (
