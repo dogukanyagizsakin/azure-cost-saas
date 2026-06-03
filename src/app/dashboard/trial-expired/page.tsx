@@ -17,7 +17,6 @@ export default function TrialExpiredPage() {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-lg w-full text-center"
       >
-        {/* İkon */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -29,19 +28,16 @@ export default function TrialExpiredPage() {
           </svg>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <h1 className="text-3xl font-black text-white mb-3">
-            Deneme süreniz doldu
-          </h1>
-          <p className="text-gray-400 text-lg mb-2">
-            7 günlük ücretsiz deneme süreniz sona erdi.
-          </p>
-          <p className="text-gray-500 text-sm mb-8">
-            Azure maliyet optimizasyonuna devam etmek için Pro plana geçin.
-          </p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <h1 className="text-3xl font-black text-white mb-3">Deneme süreniz doldu</h1>
+          <p className="text-gray-400 text-lg mb-2">7 günlük ücretsiz deneme süreniz sona erdi.</p>
+          <p className="text-gray-500 text-sm mb-8">Azure maliyet optimizasyonuna devam etmek için Pro plana geçin.</p>
         </motion.div>
 
-        {/* CTA Butonları */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -68,7 +64,6 @@ export default function TrialExpiredPage() {
           </a>
         </motion.div>
 
-        {/* Özellikler */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

@@ -56,38 +56,6 @@ export default function CustomerDetailPage() {
     setScanning(false)
   }
 
-  async function handleScan() {
-    setScanning(true)
-    const toastId = toast.loading('Tarama başlatılıyor...')
-    try {
-      ...
-    } catch {
-      toast.error('Hata oluştu', { id: toastId })
-    }
-    setScanning(false)
-  }
-
-  // BURAYA EKLE
-  async function handleUpdatePlan(plan: string) {
-    const token = localStorage.getItem('admin_token')
-    const toastId = toast.loading('Plan güncelleniyor...')
-    const res = await fetch('/api/admin/update-plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': token || '' },
-      body: JSON.stringify({ tenantId, plan }),
-    })
-    const d = await res.json()
-    if (d.success) {
-      toast.success(`Plan ${plan === 'pro' ? 'Pro' : 'Free'} olarak güncellendi!`, { id: toastId })
-      loadDetail()
-    } else {
-      toast.error(d.error || 'Plan güncellenemedi', { id: toastId })
-    }
-  }
-
-  if (loading) {
-    return (
-
   async function handleResetPassword() {
     if (!newPassword || newPassword.length < 6) {
       toast.error('Şifre en az 6 karakter olmalı')
@@ -114,6 +82,23 @@ export default function CustomerDetailPage() {
       toast.error('Hata oluştu')
     }
     setResettingPassword(false)
+  }
+
+  async function handleUpdatePlan(plan: string) {
+    const token = localStorage.getItem('admin_token')
+    const toastId = toast.loading('Plan güncelleniyor...')
+    const res = await fetch('/api/admin/update-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': token || '' },
+      body: JSON.stringify({ tenantId, plan }),
+    })
+    const d = await res.json()
+    if (d.success) {
+      toast.success(`Plan ${plan === 'pro' ? 'Pro' : 'Free'} olarak güncellendi!`, { id: toastId })
+      loadDetail()
+    } else {
+      toast.error(d.error || 'Plan güncellenemedi', { id: toastId })
+    }
   }
 
   if (loading) {
@@ -216,6 +201,9 @@ export default function CustomerDetailPage() {
             <span className={`text-xs px-2 py-0.5 rounded-full ${tenant?.azure_subscription_id ? 'bg-blue-900/50 text-blue-400' : 'bg-gray-800 text-gray-500'}`}>
               {tenant?.azure_subscription_id ? '✓ Azure Bağlı' : '✗ Azure Yok'}
             </span>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${tenant?.plan === 'pro' ? 'bg-purple-900/50 text-purple-400' : 'bg-yellow-900/50 text-yellow-400'}`}>
+              {tenant?.plan === 'pro' ? '⚡ Pro' : '🆓 Free'}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -311,45 +299,44 @@ export default function CustomerDetailPage() {
                   </div>
                 ))}
               </div>
-{/* Plan Yönetimi */}
-<div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-  <h3 className="text-sm font-semibold text-white mb-4">Plan Yönetimi</h3>
-  <div className="flex items-center justify-between">
-    <div>
-      <p className="text-sm text-white font-medium">
-        {tenant?.plan === 'pro' ? '⚡ Pro Plan' : '🆓 Free Plan'}
-      </p>
-      <p className="text-xs text-gray-500 mt-0.5">
-        {tenant?.plan === 'pro'
-          ? `Pro'ya geçiş: ${tenant?.plan_upgraded_at ? new Date(tenant.plan_upgraded_at).toLocaleDateString('tr-TR') : '-'}`
-          : `Deneme bitiş: ${tenant?.trial_ends_at ? new Date(tenant.trial_ends_at).toLocaleDateString('tr-TR') : '-'}`
-        }
-      </p>
-    </div>
-    <div className="flex gap-2">
-      {tenant?.plan !== 'pro' && (
-        <button
-          onClick={() => handleUpdatePlan('pro')}
-          className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors"
-        >
-          Pro'ya Geç
-        </button>
-      )}
-      {tenant?.plan === 'pro' && (
-        <button
-          onClick={() => handleUpdatePlan('free')}
-          className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors"
-        >
-          Free'ye Düşür
-        </button>
-      )}
-    </div>
-  </div>
-</div>
 
-{/* Azure Bilgileri */}
-<div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-  <h3 className="text-sm font-semibold text-white mb-4">Azure Bağlantı Bilgileri</h3>
+              {/* Plan Yönetimi */}
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                <h3 className="text-sm font-semibold text-white mb-4">Plan Yönetimi</h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-white font-medium">
+                      {tenant?.plan === 'pro' ? '⚡ Pro Plan' : '🆓 Free Plan'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {tenant?.plan === 'pro'
+                        ? `Pro'ya geçiş: ${tenant?.plan_upgraded_at ? new Date(tenant.plan_upgraded_at).toLocaleDateString('tr-TR') : '-'}`
+                        : `Deneme bitiş: ${tenant?.trial_ends_at ? new Date(tenant.trial_ends_at).toLocaleDateString('tr-TR') : '-'}`
+                      }
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {tenant?.plan !== 'pro' && (
+                      <button
+                        onClick={() => handleUpdatePlan('pro')}
+                        className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        Pro'ya Geç
+                      </button>
+                    )}
+                    {tenant?.plan === 'pro' && (
+                      <button
+                        onClick={() => handleUpdatePlan('free')}
+                        className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        Free'ye Düşür
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Azure Bilgileri */}
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
                 <h3 className="text-sm font-semibold text-white mb-4">Azure Bağlantı Bilgileri</h3>
                 <div className="space-y-3">
@@ -367,6 +354,7 @@ export default function CustomerDetailPage() {
                 </div>
               </div>
 
+              {/* Kullanıcılar */}
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
                 <h3 className="text-sm font-semibold text-white mb-4">Kullanıcılar ({users?.length})</h3>
                 <div className="space-y-2">
