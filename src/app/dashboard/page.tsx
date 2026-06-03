@@ -316,7 +316,7 @@ export default function DashboardPage() {
             value: totalMaliyet,
             prefix: '$',
             sub: !costSupported && realData
-              ? '⚠ Bu subscription türünde desteklenmiyor'
+              ? '⚠ ~ Tahmini maliyet (Retail Prices)'
               : totalMaliyet > 0 ? '↑ %12 geçen ay' : 'Tarama yapılmamış',
             subColor: !costSupported && realData ? 'text-yellow-500' :
               totalMaliyet > 0 ? 'text-red-400' : 'text-gray-500',
@@ -349,7 +349,7 @@ export default function DashboardPage() {
             label: 'Ay Sonu Tahmini',
             value: tahmin,
             prefix: '$',
-            sub: !costSupported && realData ? '⚠ Maliyet verisi yok' : 'Mevcut trendde',
+            sub: !costSupported && realData ? '⚠ ~ Tahmini maliyet (Retail Prices)' : 'Mevcut trendde',
             subColor: !costSupported && realData ? 'text-yellow-500' : 'text-gray-500',
             icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
             iconBg: 'bg-orange-600/20', iconColor: 'text-orange-400', valueColor: 'text-orange-400',
