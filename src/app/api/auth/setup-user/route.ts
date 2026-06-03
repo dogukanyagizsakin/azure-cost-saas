@@ -44,9 +44,11 @@ export async function POST(request: Request) {
     const company = user.user_metadata?.company ||
       user.email?.split('@')[1]?.split('.')[0] || 'Company'
 
-    const { data: tenant, error: tenantError } = await adminSupabase
+ const slug = company.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now()
+
+const { data: tenant, error: tenantError } = await adminSupabase
   .from('tenants')
-  .insert({ name: company, is_active: true, onboarding_completed: false })
+  .insert({ name: company, slug, is_active: true, onboarding_completed: false })
   .select()
   .single()
 
