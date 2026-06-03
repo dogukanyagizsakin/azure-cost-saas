@@ -45,10 +45,10 @@ export async function POST(request: Request) {
       user.email?.split('@')[1]?.split('.')[0] || 'Company'
 
     const { data: tenant, error: tenantError } = await adminSupabase
-      .from('tenants')
-      .insert({ name: company, is_active: true })
-      .select()
-      .single()
+  .from('tenants')
+  .insert({ name: company, is_active: true, onboarding_completed: false })
+  .select()
+  .single()
 
     if (tenantError) return NextResponse.json({ error: tenantError.message }, { status: 500 })
 
