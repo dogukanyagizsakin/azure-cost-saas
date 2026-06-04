@@ -311,23 +311,24 @@ export default function LandingPage() {
           </div>
           <div className="pricing-grid">
             <div className="pricing-card">
-              <div className="plan-name">Free</div>
+              <div className="plan-name">Free / Haftalık</div>/div>
               <div className="plan-price"><sup>$</sup>0</div>
-              <div className="plan-period">sonsuza kadar ücretsiz</div>
+              <div className="plan-period">7 Günlük Kullanım </div>
               <ul className="plan-features">
                 <li>100 kaynağa kadar</li>
-                <li>8 saatlik tarama</li>
+                <li>8 saatlik tarama periyodu</li>
                 <li>30 günlük veri saklama</li>
                 <li>E-posta bildirimleri</li>
-                <li>AI Asistan (günde 20 soru)</li>
+                <li>AI Asistan (günde 20 kredi)</li>
                 <li>Google & Microsoft giriş</li>
+                <li>1 Subscription ekleme</li>
               </ul>
               <Link href="/auth/login" className="plan-cta ghost">Ücretsiz Başla</Link>
             </div>
             <div className="pricing-card popular">
               <div className="popular-badge">En Popüler</div>
-              <div className="plan-name">Pro</div>
-              <div className="plan-price"><sup>$</sup>49</div>
+              <div className="plan-name">Pro / Yıllık</div>
+              <div className="plan-price"><sup>$</sup>149</div>
               <div className="plan-period">aylık · yıllık ödemede %20 indirim</div>
               <ul className="plan-features">
                 <li>Sınırsız kaynak</li>
@@ -336,6 +337,8 @@ export default function LandingPage() {
                 <li>Sınırsız AI Asistan</li>
                 <li>Takım yönetimi (10 kullanıcı)</li>
                 <li>Slack & Teams bildirimleri</li>
+                <li>Sınırsız Subscription ekleme</li>
+                <li>7/24 Teknik Destek</li>
               </ul>
               <Link href="/auth/login" className="plan-cta primary">Pro&apos;ya Geç</Link>
             </div>
