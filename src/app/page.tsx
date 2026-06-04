@@ -311,7 +311,7 @@ export default function LandingPage() {
           </div>
           <div className="pricing-grid">
             <div className="pricing-card">
-              <div className="plan-name">Free / Haftalık</div>/div>
+              <div className="plan-name">Free / Haftalık</div>
               <div className="plan-price"><sup>$</sup>0</div>
               <div className="plan-period">7 Günlük Kullanım </div>
               <ul className="plan-features">
