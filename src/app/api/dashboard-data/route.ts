@@ -187,7 +187,7 @@ export async function POST(request: Request) {
           isActive: r.is_active,
         })),
       recommendations: recommendations?.slice(0, 5).map(r => ({
-        kaynak: r.resources?.name || 'Bilinmiyor',
+        kaynak: (r.resources as any)?.name || 'Bilinmiyor',
         tip: r.title,
         tasarruf: Math.round(r.estimated_monthly_saving),
         oncelik: r.estimated_monthly_saving >= 500 ? 'yüksek' :
