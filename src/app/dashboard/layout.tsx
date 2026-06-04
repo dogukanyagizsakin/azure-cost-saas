@@ -189,6 +189,58 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
     loadUser()
+    // Realtime: sidebar stats güncelle
+    const statsChannel = supabase
+      .channel('sidebar-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'resources',
+      }, async () => {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('tenant_id')
+          .eq('id', (await supabase.auth.getSession()).data.session?.user.id || '')
+          .single()
+        if (!userData) return
+        const { data: resources } = await supabase
+          .from('resources')
+          .select('id')
+          .eq('tenant_id', userData.tenant_id)
+        const { data: recs } = await supabase
+          .from('recommendations')
+          .select('id')
+          .eq('tenant_id', userData.tenant_id)
+          .eq('status', 'open')
+        setStats({
+          resources: resources?.length || 0,
+          recommendations: recs?.length || 0,
+        })
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'recommendations',
+      }, async () => {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('tenant_id')
+          .eq('id', (await supabase.auth.getSession()).data.session?.user.id || '')
+          .single()
+        if (!userData) return
+        const { data: recs } = await supabase
+          .from('recommendations')
+          .select('id')
+          .eq('tenant_id', userData.tenant_id)
+          .eq('status', 'open')
+        setStats(prev => ({ ...prev, recommendations: recs?.length || 0 }))
+      })
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+      supabase.removeChannel(statsChannel)
+    }
 
     return () => subscription.unsubscribe()
   }, [router])

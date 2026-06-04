@@ -132,6 +132,42 @@ export default function DashboardPage() {
         setBudget(d.monthlyBudget)
         setAlertThreshold(d.alertThreshold)
       })
+
+    // Realtime: scan_logs tablosunu dinle
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'scan_logs',
+      }, (payload: any) => {
+        if (payload.new?.status === 'success') {
+          toast.success('Tarama tamamlandı! Dashboard güncellendi.', {
+            icon: '✅',
+            duration: 4000,
+          })
+          loadRealData()
+        }
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'recommendations',
+      }, () => {
+        loadRealData()
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'resources',
+      }, () => {
+        loadRealData()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const totalMaliyet = realData?.totalCost || 0
