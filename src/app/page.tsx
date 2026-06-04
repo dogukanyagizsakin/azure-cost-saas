@@ -21,12 +21,14 @@ export default function LandingPage() {
         .landing .nav-cta { background: var(--blue); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; transition: background 0.2s; }
         .landing .nav-cta:hover { background: var(--blue-dim); }
         .landing .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 120px 40px 80px; position: relative; overflow: hidden; }
-        .landing .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 800px; background: radial-gradient(circle, rgba(36,97,255,0.12) 0%, transparent 70%); pointer-events: none; }
-        .landing .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(36,97,255,0.1); border: 1px solid rgba(36,97,255,0.3); color: #7aa3ff; font-size: 13px; padding: 6px 16px; border-radius: 100px; margin-bottom: 32px; animation: fadeUp 0.6s ease both; }
+        .landing .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 1000px; height: 1000px; background: radial-gradient(circle, rgba(36,97,255,0.15) 0%, rgba(0,229,160,0.05) 40%, transparent 70%); pointer-events: none; }        .landing .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(36,97,255,0.1); border: 1px solid rgba(36,97,255,0.3); color: #7aa3ff; font-size: 13px; padding: 6px 16px; border-radius: 100px; margin-bottom: 32px; animation: fadeUp 0.6s ease both; }
+        .landing .hero::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(36,97,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(36,97,255,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; mask-image: radial-gradient(ellipse at center, black 20%, transparent 80%); }
         .landing .hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--blue); border-radius: 50%; animation: pulse 2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        .landing h1 { font-family: 'Syne', sans-serif; font-size: clamp(48px,7vw,88px); font-weight: 800; line-height: 1.05; letter-spacing: -3px; max-width: 900px; margin-bottom: 24px; animation: fadeUp 0.6s 0.1s ease both; }
+        @keyframes floatUp { 0%{opacity:0;transform:translateY(20px)} 100%{opacity:1;transform:translateY(0)} }
+        .landing .hero [style*="opacity:0"] { animation-fill-mode: forwards !important; }
+        .landing h1 { font-family: 'DM Sans', sans-serif; font-size: clamp(44px,6vw,80px); font-weight: 700; line-height: 1.1; letter-spacing: -1.5px; max-width: 900px; margin-bottom: 24px; animation: fadeUp 0.6s 0.1s ease both; }
         .landing h1 .accent { background: linear-gradient(135deg, #2461ff, #00e5a0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .landing .hero p { font-size: 18px; color: var(--muted); max-width: 560px; line-height: 1.7; margin-bottom: 48px; animation: fadeUp 0.6s 0.2s ease both; font-weight: 300; }
         .landing .hero-actions { display: flex; gap: 16px; align-items: center; animation: fadeUp 0.6s 0.3s ease both; margin-bottom: 80px; }
@@ -137,6 +139,40 @@ export default function LandingPage() {
 
         {/* HERO */}
         <section className="hero">
+          {/* Floating elements */}
+          <div style={{position:'absolute',top:'15%',left:'8%',width:'300px',height:'300px',background:'radial-gradient(circle, rgba(36,97,255,0.08) 0%, transparent 70%)',borderRadius:'50%',filter:'blur(40px)',pointerEvents:'none'}} />
+          <div style={{position:'absolute',bottom:'20%',right:'8%',width:'250px',height:'250px',background:'radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%)',borderRadius:'50%',filter:'blur(40px)',pointerEvents:'none'}} />
+
+          {/* Azure icon floating cards */}
+          <div style={{position:'absolute',top:'20%',left:'5%',background:'rgba(13,13,20,0.8)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',padding:'16px 20px',backdropFilter:'blur(12px)',animation:'fadeUp 0.8s 0.5s ease both',opacity:0}}>
+            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+              <div style={{width:'36px',height:'36px',background:'rgba(36,97,255,0.15)',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>☁️</div>
+              <div>
+                <p style={{fontSize:'11px',color:'var(--muted)',margin:0}}>Aylık Tasarruf</p>
+                <p style={{fontSize:'16px',fontWeight:'700',color:'var(--green)',margin:0}}>$4,280</p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{position:'absolute',top:'35%',right:'5%',background:'rgba(13,13,20,0.8)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',padding:'16px 20px',backdropFilter:'blur(12px)',animation:'fadeUp 0.8s 0.7s ease both',opacity:0}}>
+            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+              <div style={{width:'36px',height:'36px',background:'rgba(0,229,160,0.15)',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>🔍</div>
+              <div>
+                <p style={{fontSize:'11px',color:'var(--muted)',margin:0}}>Taranan Kaynak</p>
+                <p style={{fontSize:'16px',fontWeight:'700',color:'var(--white)',margin:0}}>847</p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{position:'absolute',bottom:'25%',left:'6%',background:'rgba(13,13,20,0.8)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'16px',padding:'16px 20px',backdropFilter:'blur(12px)',animation:'fadeUp 0.8s 0.9s ease both',opacity:0}}>
+            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+              <div style={{width:'36px',height:'36px',background:'rgba(255,193,7,0.15)',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>💡</div>
+              <div>
+                <p style={{fontSize:'11px',color:'var(--muted)',margin:0}}>Açık Öneri</p>
+                <p style={{fontSize:'16px',fontWeight:'700',color:'#fbbf24',margin:0}}>23 öneri</p>
+              </div>
+            </div>
+          </div>
           <div className="hero-badge">🆕 Yeni: Gemini AI Asistan eklendi!</div>
           <h1>Azure maliyetlerinizi<br /><span className="accent">akıllıca yönetin</span></h1>
           <p>8 saatte bir otomatik tarama, AI destekli maliyet analizi ve akıllı optimizasyon önerileri ile Azure faturanızı ortalama %40 azaltın.</p>
