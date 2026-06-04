@@ -105,6 +105,7 @@ export default function DashboardPage() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
 
+    // Önce kritik veriyi yükle (hızlı)
     const res = await fetch('/api/dashboard-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -113,14 +114,20 @@ export default function DashboardPage() {
 
     if (res.ok) {
       const data = await res.json()
+      
+      // Kritik veriyi hemen göster
       setRealData(data)
       setSubscriptionName(data.subscriptionName || '')
       setCostSupported(data.costSupported ?? true)
-      if (data.resourceTypeChart?.length > 0) setResourceDist(data.resourceTypeChart)
-      if (data.costTrendChart?.length > 0) {
-        setCostTrend(data.costTrendChart)
-        setMonthlyComparison(data.costTrendChart)
-      }
+
+      // Grafik verisini arka planda güncelle
+      setTimeout(() => {
+        if (data.resourceTypeChart?.length > 0) setResourceDist(data.resourceTypeChart)
+        if (data.costTrendChart?.length > 0) {
+          setCostTrend(data.costTrendChart)
+          setMonthlyComparison(data.costTrendChart)
+        }
+      }, 100)
     }
   }
 

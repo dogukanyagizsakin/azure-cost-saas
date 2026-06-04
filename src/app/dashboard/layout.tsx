@@ -169,21 +169,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         !!(subs && subs.length > 0)
       )
 
-      const { data: resources } = await supabase
-        .from('resources')
-        .select('id')
-        .eq('tenant_id', userData.tenant_id)
+      // Stats'ı arka planda yükle
+      setTimeout(async () => {
+        const { data: resources } = await supabase
+          .from('resources')
+          .select('id')
+          .eq('tenant_id', userData.tenant_id)
 
-      const { data: recs } = await supabase
-        .from('recommendations')
-        .select('id')
-        .eq('tenant_id', userData.tenant_id)
-        .eq('status', 'open')
+        const { data: recs } = await supabase
+          .from('recommendations')
+          .select('id')
+          .eq('tenant_id', userData.tenant_id)
+          .eq('status', 'open')
 
-      setStats({
-        resources: resources?.length || 0,
-        recommendations: recs?.length || 0,
-      })
+        setStats({
+          resources: resources?.length || 0,
+          recommendations: recs?.length || 0,
+        })
+      }, 500)
 
       setChecking(false)
     }
