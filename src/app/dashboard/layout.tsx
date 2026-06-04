@@ -19,10 +19,7 @@ const navItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
       </svg>
     ),
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
-    activeBg: 'bg-blue-500/20',
-    border: 'border-blue-500/30',
+    color: 'text-blue-400', bg: 'bg-blue-500/10', activeBg: 'bg-blue-500/20', border: 'border-blue-500/30',
   },
   {
     href: '/dashboard/resources',
@@ -32,10 +29,7 @@ const navItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
       </svg>
     ),
-    color: 'text-purple-400',
-    bg: 'bg-purple-500/10',
-    activeBg: 'bg-purple-500/20',
-    border: 'border-purple-500/30',
+    color: 'text-purple-400', bg: 'bg-purple-500/10', activeBg: 'bg-purple-500/20', border: 'border-purple-500/30',
   },
   {
     href: '/dashboard/recommendations',
@@ -45,10 +39,7 @@ const navItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
       </svg>
     ),
-    color: 'text-yellow-400',
-    bg: 'bg-yellow-500/10',
-    activeBg: 'bg-yellow-500/20',
-    border: 'border-yellow-500/30',
+    color: 'text-yellow-400', bg: 'bg-yellow-500/10', activeBg: 'bg-yellow-500/20', border: 'border-yellow-500/30',
   },
   {
     href: '/dashboard/reports',
@@ -58,10 +49,7 @@ const navItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     ),
-    color: 'text-green-400',
-    bg: 'bg-green-500/10',
-    activeBg: 'bg-green-500/20',
-    border: 'border-green-500/30',
+    color: 'text-green-400', bg: 'bg-green-500/10', activeBg: 'bg-green-500/20', border: 'border-green-500/30',
   },
   {
     href: '/dashboard/finops',
@@ -71,10 +59,7 @@ const navItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>
     ),
-    color: 'text-cyan-400',
-    bg: 'bg-cyan-500/10',
-    activeBg: 'bg-cyan-500/20',
-    border: 'border-cyan-500/30',
+    color: 'text-cyan-400', bg: 'bg-cyan-500/10', activeBg: 'bg-cyan-500/20', border: 'border-cyan-500/30',
   },
   {
     href: '/dashboard/savings',
@@ -84,10 +69,7 @@ const navItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
-    activeBg: 'bg-emerald-500/20',
-    border: 'border-emerald-500/30',
+    color: 'text-emerald-400', bg: 'bg-emerald-500/10', activeBg: 'bg-emerald-500/20', border: 'border-emerald-500/30',
   },
   {
     href: '/dashboard/settings',
@@ -98,10 +80,7 @@ const navItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
-    color: 'text-gray-400',
-    bg: 'bg-gray-500/10',
-    activeBg: 'bg-gray-500/20',
-    border: 'border-gray-500/30',
+    color: 'text-gray-400', bg: 'bg-gray-500/10', activeBg: 'bg-gray-500/20', border: 'border-gray-500/30',
   },
 ]
 
@@ -115,6 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [planInfo, setPlanInfo] = useState<any>(null)
+  const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -124,6 +104,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     })
 
     async function loadUser() {
+      setChecking(true)
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/auth/login'); return }
 
@@ -167,7 +148,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .eq('id', session.user.id)
         .single()
 
-      if (!userData) return
+      if (!userData) { setChecking(false); return }
 
       const { data: tenant } = await supabase
         .from('tenants')
@@ -203,6 +184,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         resources: resources?.length || 0,
         recommendations: recs?.length || 0,
       })
+
+      setChecking(false)
     }
 
     loadUser()
@@ -247,6 +230,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Kullanıcı'
   const userEmail = user?.email || ''
 
+  // Kontrol tamamlanana kadar loading ekranı göster
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-gray-600">Yükleniyor...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-gray-950 overflow-hidden">
 
@@ -267,9 +267,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </svg>
                 </div>
                 <div>
-                  <div className="flex items-center gap-0.5">
-                    <span className="text-white font-bold text-base tracking-tight">UnifyTech</span>
-                  </div>
+                  <span className="text-white font-bold text-base tracking-tight">UnifyTech</span>
                   <p className="text-gray-500 text-xs font-medium tracking-widest uppercase">Cost Pilot</p>
                 </div>
               </Link>
@@ -407,7 +405,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {sidebarOpen && <span className="text-sm font-medium">Destek</span>}
           </button>
 
-          {/* Pro'ya Geç — sadece free kullanıcılara */}
           {sidebarOpen && planInfo && !planInfo.isPro && (
             <Link
               href="/dashboard/upgrade"
