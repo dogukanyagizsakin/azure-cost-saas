@@ -508,7 +508,6 @@ export default function SettingsPage() {
           { key: 'azure', label: 'Azure Bağlantısı' },
           { key: 'notifications', label: 'Bildirimler' },
           { key: 'budget', label: 'Bütçe' },
-          { key: 'team', label: 'Takım' },
           { key: 'account', label: 'Hesap' },
         ].map(tab => (
           <button
@@ -774,9 +773,6 @@ export default function SettingsPage() {
 
       {/* Bütçe */}
       {activeTab === 'budget' && <BudgetTab />}
-
-      {/* Takım */}
-      {activeTab === 'team' && <TeamTab />}
 
       {/* Hesap */}
       {activeTab === 'account' && (
