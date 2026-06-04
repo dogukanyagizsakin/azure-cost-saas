@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { logActivity, ActivityActions } from '@/lib/activityLogger'
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
-import { useLanguage } from '@/lib/i18n/LanguageContext'
+
 
 export default function LoginPage() {
   const router = useRouter()
@@ -24,7 +23,6 @@ export default function LoginPage() {
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotLoading, setForgotLoading] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
-  const { t } = useLanguage()
 
   async function handleMicrosoftLogin() {
     setLoading(true)
@@ -140,11 +138,6 @@ export default function LoginPage() {
 
   return (
   <div className="min-h-screen flex relative">
-
-    {/* Dil Seçici */}
-    <div className="absolute top-4 right-4 z-10">
-      <LanguageSwitcher />
-    </div>
 
     {/* Sol panel */}
     <div className="hidden lg:flex lg:w-1/2 bg-black flex-col items-center justify-center p-12 relative overflow-hidden">
