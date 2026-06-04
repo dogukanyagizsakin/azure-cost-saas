@@ -142,35 +142,107 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-950/40 via-black to-black" />
         <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-600/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+
+        {/* Animasyonlu arka plan grid */}
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: 'linear-gradient(rgba(59,130,246,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.5) 1px, transparent 1px)',
+          backgroundSize: '40px 40px'
+        }} />
 
         <div className="relative z-10 flex flex-col items-center text-center w-full max-w-sm">
-          <div className="flex items-center gap-3 mb-12">
-            <span className="text-white font-bold text-4xl tracking-tight">Unify</span>
-            <span className="text-blue-400 font-light text-4xl tracking-tight">Tech</span>
-            <span className="text-gray-400 font-light text-lg tracking-widest mt-1">BİLGİ SİSTEMLERİ</span>
+
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-white font-bold text-3xl tracking-tight">Unify</span>
+              <span className="text-blue-400 font-light text-3xl tracking-tight">Tech</span>
+            </div>
           </div>
-          <div className="border-t border-gray-800 w-16 mb-12" />
-          <h2 className="text-2xl font-semibold text-white mb-4">Azure Maliyet Yönetimi</h2>
-          <p className="text-gray-400 max-w-sm leading-relaxed">
+          <p className="text-gray-500 text-xs font-medium tracking-widest uppercase mb-8">BİLGİ SİSTEMLERİ</p>
+
+          <div className="border-t border-gray-800 w-16 mb-8" />
+
+          <h2 className="text-2xl font-bold text-white mb-3">Azure Maliyet Yönetimi</h2>
+          <p className="text-gray-400 text-sm leading-relaxed mb-8">
             Azure kaynaklarınızı otomatik tarayın, kullanılmayan kaynakları tespit edin ve maliyetlerinizi optimize edin.
           </p>
-          <div className="mt-12 grid grid-cols-3 gap-8 w-full">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-400">%40</p>
-              <p className="text-xs text-gray-500 mt-1">Ortalama tasarruf</p>
+
+          {/* Özellik kartları */}
+          <div className="w-full space-y-3 mb-8">
+            {[
+              {
+                icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+                title: 'Otomatik Maliyet Taraması',
+                desc: 'Tüm Azure kaynaklarınız otomatik analiz edilir',
+                color: 'text-blue-400',
+                bg: 'bg-blue-500/10 border-blue-800/30',
+              },
+              {
+                icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
+                title: 'AI Destekli Öneriler',
+                desc: 'Yapay zeka ile kişiselleştirilmiş optimizasyon',
+                color: 'text-yellow-400',
+                bg: 'bg-yellow-500/10 border-yellow-800/30',
+              },
+              {
+                icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                title: '%40 Ortalama Tasarruf',
+                desc: 'Müşterilerimiz ortalama %40 maliyet düşürüyor',
+                color: 'text-green-400',
+                bg: 'bg-green-500/10 border-green-800/30',
+              },
+            ].map((item, i) => (
+              <div key={i} className={`flex items-center gap-4 p-3.5 rounded-xl border ${item.bg} text-left`}>
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${item.bg}`}>
+                  <svg className={`w-4.5 h-4.5 ${item.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">{item.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* İstatistikler */}
+          <div className="grid grid-cols-3 gap-4 w-full mb-8">
+            {[
+              { value: '%40', label: 'Ortalama tasarruf', color: 'text-blue-400' },
+              { value: '7/24', label: 'Otomatik izleme', color: 'text-green-400' },
+              { value: '5dk', label: 'Kurulum süresi', color: 'text-yellow-400' },
+            ].map((stat, i) => (
+              <div key={i} className="bg-gray-900/50 border border-gray-800/50 rounded-xl p-3 text-center">
+                <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+                <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Müşteri yorumu */}
+          <div className="w-full bg-gray-900/50 border border-gray-800/50 rounded-xl p-4 text-left mb-8">
+            <div className="flex items-center gap-1 mb-2">
+              {[...Array(5)].map((_, i) => (
+                <svg key={i} className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-400">8s</p>
-              <p className="text-xs text-gray-500 mt-1">Tarama sıklığı</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-400">7/24</p>
-              <p className="text-xs text-gray-500 mt-1">Otomatik izleme</p>
-            </div>
+            <p className="text-xs text-gray-400 italic leading-relaxed">
+              &ldquo;CostPilot sayesinde Azure maliyetlerimizi 3 ayda %45 düşürdük. Kurulum 5 dakika sürdü.&rdquo;
+            </p>
+            <p className="text-xs text-gray-600 mt-2">— IT Direktörü, Üretim Sektörü</p>
           </div>
 
           {/* Admin Girişi */}
-          <div className="mt-16 w-full border-t border-gray-800/50 pt-8">
+          <div className="w-full border-t border-gray-800/50 pt-6">
             <button
               onClick={() => setShowAdminModal(true)}
               className="w-full flex items-center justify-center gap-2 bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-gray-400 hover:text-white text-sm font-medium py-3 rounded-xl transition-all"
