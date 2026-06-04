@@ -120,6 +120,40 @@ export async function POST(request: Request) {
         })
       : null
 
+// Kaynak türüne göre maliyet dağılımı
+    const resourceTypeCosts: Record<string, number> = {}
+    resources?.forEach(r => {
+      const type = r.resource_type?.split('/').pop() || 'Diğer'
+      const cost = r.cost_snapshots?.reduce((s: number, c: any) => s + Number(c.cost_usd), 0) || 0
+      if (cost > 0) {
+        resourceTypeCosts[type] = (resourceTypeCosts[type] || 0) + cost
+      }
+    })
+
+    const resourceTypeChart = Object.entries(resourceTypeCosts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([name, value], i) => ({
+        name,
+        value: Math.round(value),
+        color: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'][i],
+      }))
+
+    // Tarama geçmişinden maliyet trendi
+    const { data: allScanLogs } = await adminSupabase
+      .from('scan_logs')
+      .select('started_at, total_cost_usd, resources_scanned')
+      .eq('tenant_id', userData.tenant_id)
+      .eq('status', 'success')
+      .order('started_at', { ascending: true })
+      .limit(10)
+
+    const costTrendChart = allScanLogs?.map(log => ({
+      tarih: new Date(log.started_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
+      maliyet: Math.round(Number(log.total_cost_usd) || 0),
+      kaynak: log.resources_scanned || 0,
+    })) || []
+
     return NextResponse.json({
       totalCost: Math.round(totalCost),
       totalSaving: Math.round(totalSaving),
@@ -127,6 +161,8 @@ export async function POST(request: Request) {
       activeCount: resources?.filter(r => r.is_active).length || 0,
       recommendationCount: recommendations?.length || 0,
       subscriptionName,
+      resourceTypeChart,
+      costTrendChart,
       costSupported,
       lastScanTime,
       scanLogs: scanLogs || [],

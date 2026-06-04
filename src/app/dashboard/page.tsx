@@ -9,31 +9,29 @@ import {
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts'
 
-const costTrend = [
-  { gun: 'Pzt', maliyet: 1240 },
-  { gun: 'Sal', maliyet: 1380 },
-  { gun: 'Çar', maliyet: 1190 },
-  { gun: 'Per', maliyet: 1520 },
-  { gun: 'Cum', maliyet: 1350 },
-  { gun: 'Cmt', maliyet: 980 },
-  { gun: 'Paz', maliyet: 1100 },
+const defaultCostTrend = [
+  { tarih: 'Pzt', maliyet: 0 },
+  { tarih: 'Sal', maliyet: 0 },
+  { tarih: 'Çar', maliyet: 0 },
+  { tarih: 'Per', maliyet: 0 },
+  { tarih: 'Cum', maliyet: 0 },
 ]
 
-const monthlyComparison = [
-  { ay: 'Oca', maliyet: 7200 },
-  { ay: 'Şub', maliyet: 8100 },
-  { ay: 'Mar', maliyet: 7800 },
-  { ay: 'Nis', maliyet: 8600 },
-  { ay: 'May', maliyet: 8200 },
-  { ay: 'Haz', maliyet: 9600 },
+const defaultMonthlyComparison = [
+  { ay: 'Oca', maliyet: 0 },
+  { ay: 'Şub', maliyet: 0 },
+  { ay: 'Mar', maliyet: 0 },
+  { ay: 'Nis', maliyet: 0 },
+  { ay: 'May', maliyet: 0 },
+  { ay: 'Haz', maliyet: 0 },
 ]
 
-const resourceDist = [
-  { name: 'Virtual Machines', value: 4200, color: '#3b82f6' },
-  { name: 'Storage', value: 1800, color: '#8b5cf6' },
-  { name: 'SQL Database', value: 2100, color: '#06b6d4' },
-  { name: 'App Service', value: 900, color: '#10b981' },
-  { name: 'Diğer', value: 600, color: '#6b7280' },
+const defaultResourceDist = [
+  { name: 'Virtual Machines', value: 0, color: '#3b82f6' },
+  { name: 'Storage', value: 0, color: '#8b5cf6' },
+  { name: 'SQL Database', value: 0, color: '#06b6d4' },
+  { name: 'App Service', value: 0, color: '#10b981' },
+  { name: 'Diğer', value: 0, color: '#6b7280' },
 ]
 
 const defaultTopResources = [
@@ -99,6 +97,9 @@ export default function DashboardPage() {
   const [realData, setRealData] = useState<any>(null)
   const [subscriptionName, setSubscriptionName] = useState('')
   const [costSupported, setCostSupported] = useState(true)
+  const [resourceDist, setResourceDist] = useState(defaultResourceDist)
+  const [costTrend, setCostTrend] = useState(defaultCostTrend)
+  const [monthlyComparison, setMonthlyComparison] = useState(defaultMonthlyComparison)
 
   async function loadRealData() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -115,6 +116,11 @@ export default function DashboardPage() {
       setRealData(data)
       setSubscriptionName(data.subscriptionName || '')
       setCostSupported(data.costSupported ?? true)
+      if (data.resourceTypeChart?.length > 0) setResourceDist(data.resourceTypeChart)
+      if (data.costTrendChart?.length > 0) {
+        setCostTrend(data.costTrendChart)
+        setMonthlyComparison(data.costTrendChart)
+      }
     }
   }
 
@@ -132,7 +138,6 @@ export default function DashboardPage() {
   const tasarrufFirsati = realData?.totalSaving || 0
   const aktifKaynak = realData?.resourceCount || 0
   const tahmin = Math.round(totalMaliyet * 1.15)
-  
 
   const displayTopResources = realData?.topResources?.map((r: any) => ({
     name: r.name,
@@ -226,8 +231,8 @@ export default function DashboardPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <div>
-            <p className="text-sm text-yellow-300 font-medium">Bilgilendirme : Tahmini maliyet gösterilmektedir.</p>
-            <p className="text-xs text-yellow-400/70 mt-0.5">Bu subscription türünde Cost Management API desteklenmiyor. Maliyet verileri Azure Retail Prices API üzerinden tahmin edilmektedir. Pay-As-You-Go, Enterprise Agreement (EA), Microsoft Customer Agreement (MCA) ve Cloud Solution Provider (CSP) türündeki abonelikler için gerçek fiyatlar görüntülenebilmektedir. Ayrıntılı bilgi için iletişime geçebilirsiniz. </p>
+            <p className="text-sm text-yellow-300 font-medium">Bilgilendirme: Tahmini maliyet gösterilmektedir.</p>
+            <p className="text-xs text-yellow-400/70 mt-0.5">Bu subscription türünde Cost Management API desteklenmiyor. Maliyet verileri Azure Retail Prices API üzerinden tahmin edilmektedir. Pay-As-You-Go, EA, MCA ve CSP türündeki abonelikler için gerçek fiyatlar görüntülenebilmektedir.</p>
           </div>
         </motion.div>
       )}
@@ -316,7 +321,7 @@ export default function DashboardPage() {
             value: totalMaliyet,
             prefix: '$',
             sub: !costSupported && realData
-              ? '⚠ ~ Tahmini maliyet (Retail Prices)'
+              ? '~ Tahmini maliyet (Retail Prices)'
               : totalMaliyet > 0 ? '↑ %12 geçen ay' : 'Tarama yapılmamış',
             subColor: !costSupported && realData ? 'text-yellow-500' :
               totalMaliyet > 0 ? 'text-red-400' : 'text-gray-500',
@@ -349,7 +354,7 @@ export default function DashboardPage() {
             label: 'Ay Sonu Tahmini',
             value: tahmin,
             prefix: '$',
-            sub: !costSupported && realData ? '⚠ ~ Tahmini maliyet (Retail Prices)' : 'Mevcut trendde',
+            sub: !costSupported && realData ? '~ Tahmini değer' : 'Mevcut trendde',
             subColor: !costSupported && realData ? 'text-yellow-500' : 'text-gray-500',
             icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
             iconBg: 'bg-orange-600/20', iconColor: 'text-orange-400', valueColor: 'text-orange-400',
@@ -384,13 +389,15 @@ export default function DashboardPage() {
       <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants} className="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-sm font-semibold text-white">Son 7 Günlük Maliyet Trendi</h2>
-            <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">Bu Hafta</span>
+            <h2 className="text-sm font-semibold text-white">Tarama Bazlı Maliyet Trendi</h2>
+            <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
+              {costTrend.length > 0 && costTrend[0].maliyet > 0 ? 'Gerçek Veri' : 'Veri Bekleniyor'}
+            </span>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={costTrend}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="gun" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="tarih" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
               <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '8px', fontSize: '12px' }} formatter={(v) => [`$${v}`, 'Maliyet']} />
               <Line type="monotone" dataKey="maliyet" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} activeDot={{ r: 5 }} />
@@ -399,7 +406,12 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div variants={itemVariants} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-white mb-4">Kaynak Dağılımı</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white">Kaynak Dağılımı</h2>
+            <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
+              {resourceDist.some(r => r.value > 0) ? 'Gerçek Veri' : 'Veri Bekleniyor'}
+            </span>
+          </div>
           <ResponsiveContainer width="100%" height={150}>
             <PieChart>
               <Pie data={resourceDist} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={3} dataKey="value">
@@ -409,7 +421,7 @@ export default function DashboardPage() {
             </PieChart>
           </ResponsiveContainer>
           <div className="space-y-1.5 mt-3">
-            {resourceDist.map((item, i) => (
+            {resourceDist.filter(r => r.value > 0).map((item, i) => (
               <motion.div key={i} className="flex items-center justify-between" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.08 }}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
@@ -418,19 +430,24 @@ export default function DashboardPage() {
                 <span className="text-xs text-white font-medium">${item.value.toLocaleString()}</span>
               </motion.div>
             ))}
+            {!resourceDist.some(r => r.value > 0) && (
+              <p className="text-xs text-gray-600 text-center py-2">Tarama sonrası veri görünecek</p>
+            )}
           </div>
         </motion.div>
       </motion.div>
 
       <motion.div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-sm font-semibold text-white">Aylık Maliyet Karşılaştırması</h2>
-          <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">Son 6 Ay</span>
+          <h2 className="text-sm font-semibold text-white">Tarama Geçmişi — Maliyet Karşılaştırması</h2>
+          <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
+            {monthlyComparison.some(m => m.maliyet > 0) ? 'Gerçek Veri' : 'Veri Bekleniyor'}
+          </span>
         </div>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={monthlyComparison} barSize={32}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-            <XAxis dataKey="ay" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <XAxis dataKey="tarih" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
             <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '8px', fontSize: '12px' }} formatter={(v) => [`$${v}`, 'Maliyet']} />
             <Bar dataKey="maliyet" fill="#3b82f6" radius={[4, 4, 0, 0]} />
