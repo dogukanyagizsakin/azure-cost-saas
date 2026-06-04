@@ -352,13 +352,33 @@ export async function POST(request: Request) {
 
           if (resourceId && resourceCost > 0) {
             const now = new Date()
-            await adminSupabase.from('cost_snapshots').insert({
-              tenant_id: tenant.id,
-              resource_id: resourceId,
-              period_start: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0],
-              period_end: now.toISOString().split('T')[0],
-              cost_usd: resourceCost,
-            })
+            const periodStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+            const periodEnd = now.toISOString().split('T')[0]
+
+            // Aynı kaynak için bu ay snapshot var mı kontrol et
+            const { data: existingSnapshot } = await adminSupabase
+              .from('cost_snapshots')
+              .select('id')
+              .eq('resource_id', resourceId)
+              .eq('period_start', periodStart)
+              .maybeSingle()
+
+            if (existingSnapshot) {
+              // Varsa güncelle
+              await adminSupabase
+                .from('cost_snapshots')
+                .update({ cost_usd: resourceCost, period_end: periodEnd, scanned_at: new Date().toISOString() })
+                .eq('id', existingSnapshot.id)
+            } else {
+              // Yoksa yeni ekle
+              await adminSupabase.from('cost_snapshots').insert({
+                tenant_id: tenant.id,
+                resource_id: resourceId,
+                period_start: periodStart,
+                period_end: periodEnd,
+                cost_usd: resourceCost,
+              })
+            }
           }
 
           if (resourceId) {
