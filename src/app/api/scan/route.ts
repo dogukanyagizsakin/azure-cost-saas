@@ -150,10 +150,9 @@ function detectIssues(resource: any, costPerMonth: number) {
   }
 
   if (
-    type.includes('microsoft.sql') ||
-    type.includes('sqlservers') ||
+    type.includes('microsoft.sql/servers') ||
     type.includes('sqlserverinstances') ||
-    type.includes('azurearcdata/sql')
+    type.includes('azurearcdata/sqlserverinstances')
   ) {
     issues.push({
       type: 'reserved_instance',
