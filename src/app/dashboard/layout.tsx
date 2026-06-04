@@ -72,6 +72,19 @@ const navItems = [
     color: 'text-emerald-400', bg: 'bg-emerald-500/10', activeBg: 'bg-emerald-500/20', border: 'border-emerald-500/30',
   },
   {
+    href: '/dashboard/support',
+    label: 'Destek',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    color: 'text-cyan-400',
+    bg: 'bg-cyan-500/10',
+    activeBg: 'bg-cyan-500/20',
+    border: 'border-cyan-500/30',
+  },
+  {
     href: '/dashboard/settings',
     label: 'Ayarlar',
     icon: (
@@ -447,18 +460,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </button>
 
-          <button
-            onClick={() => { window.location.href = 'mailto:info@unifytech.com.tr' }}
-            title={!sidebarOpen ? 'Destek' : undefined}
-            className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-gray-800/70 group"
-          >
-            <div className="flex-shrink-0 p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            {sidebarOpen && <span className="text-sm font-medium">Destek</span>}
-          </button>
+          <Link
+  href="/dashboard/support"
+  title={!sidebarOpen ? 'Destek' : undefined}
+  className={[
+    'flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all duration-150 group relative',
+    pathname === '/dashboard/support'
+      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+      : 'text-gray-400 hover:text-white hover:bg-gray-800/70'
+  ].join(' ')}
+>
+  <div className="flex-shrink-0 p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400">
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+  {sidebarOpen && <span className="text-sm font-medium">Destek</span>}
+</Link>
 
           {sidebarOpen && planInfo && !planInfo.isPro && (
             <Link
