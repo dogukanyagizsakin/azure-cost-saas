@@ -434,50 +434,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )
           })}
 
-          <div className="border-t border-gray-800 my-3" />
-
-          {sidebarOpen && (
-            <p className="text-xs text-gray-600 uppercase tracking-wider px-2 mb-2">Hızlı Erişim</p>
-          )}
-
-          <button
-            onClick={handleQuickScan}
-            disabled={scanning || !isAzureConnected}
-            title={!sidebarOpen ? 'Hızlı Tara' : undefined}
-            className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-gray-800/70 disabled:opacity-40 disabled:cursor-not-allowed group"
-          >
-            <div className="flex-shrink-0 p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
-              {scanning ? (
-                <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              )}
-            </div>
-            {sidebarOpen && (
-              <span className="text-sm font-medium">{scanning ? 'Taranıyor...' : 'Hızlı Tara'}</span>
-            )}
-          </button>
-
-          <Link
-  href="/dashboard/support"
-  title={!sidebarOpen ? 'Destek' : undefined}
-  className={[
-    'flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all duration-150 group relative',
-    pathname === '/dashboard/support'
-      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-      : 'text-gray-400 hover:text-white hover:bg-gray-800/70'
-  ].join(' ')}
->
-  <div className="flex-shrink-0 p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400">
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  </div>
-  {sidebarOpen && <span className="text-sm font-medium">Destek</span>}
-</Link>
-
           {sidebarOpen && planInfo && !planInfo.isPro && (
             <Link
               href="/dashboard/upgrade"
