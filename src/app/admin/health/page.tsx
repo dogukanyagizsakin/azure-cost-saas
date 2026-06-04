@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import AdminSidebar from '@/components/admin/AdminSidebar'
 
 type TenantHealth = {
   tenantId: string
@@ -88,60 +89,7 @@ export default function AdminHealthPage() {
   return (
     <div className="min-h-screen bg-gray-950 flex">
 
-      {/* Sidebar */}
-      <aside className="w-60 bg-gray-900 border-r border-gray-800 flex flex-col flex-shrink-0">
-        <div className="p-4 border-b border-gray-800">
-          <Link href="/admin/dashboard" className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <div>
-              <div className="flex items-center gap-0.5">
-                <span className="text-white font-bold text-sm">Unify</span>
-                <span className="text-blue-400 font-light text-sm">Tech</span>
-              </div>
-              <p className="text-gray-500 text-xs font-medium tracking-widest uppercase">Admin</p>
-            </div>
-          </Link>
-        </div>
-
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          <p className="text-xs text-gray-600 uppercase tracking-wider px-2 mb-2">Menü</p>
-          {navItems.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={[
-                'flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all',
-                item.href === '/admin/health'
-                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800/70'
-              ].join(' ')}
-            >
-              <div className={`p-1.5 rounded-lg ${item.bg} ${item.color}`}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
-                </svg>
-              </div>
-              <span className="text-sm font-medium">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div className="p-3 border-t border-gray-800">
-          <button
-            onClick={() => { document.cookie = 'admin_token=; path=/; max-age=0'; localStorage.clear(); window.location.href = '/admin/login' }}
-            className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-gray-400 hover:text-red-400 hover:bg-gray-800/70 transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span className="text-sm font-medium">Çıkış Yap</span>
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar />
 
       {/* Ana İçerik */}
       <div className="flex-1 flex flex-col overflow-hidden">
